@@ -1,9 +1,12 @@
-const Sequelize = require('sequelize');
+const Sequelize = require('sequelize')
 
 
-const sequelize = new Sequelize('sequelize','aluno','ifpecjbg',{
-    dialect : 'mysql',
-    host: 'localhost'
+const sequelize = new Sequelize({
+    dialect: process.env.DB_DIALECT,
+    database: process.env.DB_NAME,
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
 });
 
 

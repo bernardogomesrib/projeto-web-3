@@ -2,21 +2,45 @@ require('dotenv').config()
 const User = require("../entities/User")
 const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken')
-
-async function getUserByName(nome){
-    try {
-        const user = await User.findOne({
-            where: {
-                nome
-            }
-        })
-        return user
-    } catch (error){
-        throw error
-    }
-}
+const Tokens = require('../entities/Tokens')
 
 const UserControl = {
+    find: {
+        async getUserByName(nome) {
+            try {
+                return await User.findOne({
+                    where: {
+                        nome
+                    }
+                })
+            } catch (error) {
+                throw error
+            }
+
+        },
+        async getById(req, res) {
+            const { id } = req.params;
+            try {
+                const UserInstance = await User.findByPk(id)
+                UserInstance.password = "";
+                return res.json(UserInstance)
+            } catch (error) {
+                res.status(500).json({ error: 'Erro ao procurar User - ' + error.message })
+            }
+        },
+        async getToken(token) {
+            try {
+                return await Tokens.findOne({
+                    where: {
+                        token
+                    }
+                })
+            } catch (error) {
+                throw error
+            }
+        }
+    },
+
     async getAll(req, res) {
         try {
             res.json(await User.findAll())
@@ -29,24 +53,11 @@ const UserControl = {
         }
     },
 
-    async getById(req, res) {
-        const { id } = req.params;
-        try {
-            const UserInstance = await User.findByPk(id);
-            UserInstance.password = "";
-            return res.json(UserInstance)
-        } catch (error) {
-            res.status(500).json({ error: 'Erro ao procurar User - ' + error.message })
-        }
-    },
-
     async save(req, res) {
         const { nome, password } = req.body
         const ultimoIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-
         try {
-            const user = await getUserByName(nome)
-
+            const user = await UserControl.find.getUserByName(nome)
             if (user) {
                 res.status(400).json({ msg: "Nome de usuário já existe" })
             } else {
@@ -69,30 +80,64 @@ const UserControl = {
     },
 
     async login(req, res) {
-        const { nome, password } = req.body
+        const { nome, password } = req.body;
         if (!nome || !password) {
-            res.status(400).json({ msg: 'Dados obrigatórios não foram preenchidos' })
+            return res.status(400).json({ msg: 'Dados obrigatórios não foram preenchidos' });
         }
 
         try {
-            const user = await getUserByName(nome)
+            const user = await UserControl.find.getUserByName(nome);
             if (user) {
-                const senha_ok = await bcrypt.compare(password, user.password)
+                const senha_ok = await bcrypt.compare(password, user.password);
                 if (senha_ok) {
-                    let token = jwt.sign({
+                    const existingToken = jwt.sign({
                         id: user.id,
                         nome: user.nome,
                         tipo: user.tipo
-                    }, process.env.JWT_SECRET)
-                    res.status(200).json({ msg: "Usuário logado com sucesso!", token: token })
+                    }, process.env.JWT_SECRET);
+                    
+                    const tokenInvalidExists = await UserControl.find.getToken(existingToken);
+                    if (tokenInvalidExists) {
+                        return res.status(400).json({ msg: 'Token já está inválido' });
+                    }
+
+                    let token = existingToken;
+                    return res.status(200).json({ msg: "Usuário logado com sucesso!", token: token });
                 } else {
-                    res.status(400).json({ error: "Nome ou Senha incorretos!" })
+                    return res.status(400).json({ error: "Nome ou Senha incorretos!" });
                 }
             } else {
-                res.status(404).json({ error: "Usuário não encontrado!" })
+                return res.status(404).json({ error: "Usuário não encontrado!" });
             }
         } catch (error) {
-            res.status(400).json(error)
+            return res.status(400).json(error);
+        }
+    },
+
+    async logout(req, res) {
+        try {
+            const { authorization } = req.headers;
+            if (!authorization) {
+                return res.status(400).json({ msg: "Token não fornecido" });
+            }
+
+            const token = authorization.split(' ')[1];
+            const tokenInvalidExists = await UserControl.find.getToken(token);
+
+            if (tokenInvalidExists) {
+                return res.status(200).json({ msg: "Token já está inválido" });
+            }
+
+            await Tokens.create({
+                token
+            });
+
+            return res.status(200).json({
+                msg: "Logout realizado com sucesso!"
+            });
+
+        } catch (error) {
+            return res.status(500).json({ msg: "Erro ao processar logout", erro: error.message });
         }
     },
 

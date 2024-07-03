@@ -30,9 +30,10 @@ router.delete('/threads/', ThreadControl.delete);
 
 //User
 router.get('/users/', userAuth, UserControl.getAll);
-router.get('/users/:id', UserControl.getById);
+router.get('/users/:id', UserControl.find.getById);
 router.post('/users/', UserControl.save);
 router.post('/login', UserControl.login)
+router.post('/logout', UserControl.logout)
 router.put('/users/', UserControl.update);
 router.delete('/users/', UserControl.delete);
 
