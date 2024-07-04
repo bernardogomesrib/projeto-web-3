@@ -10,32 +10,32 @@ const { adminAuth, userAuth } = require('../auth/auth');
 //answer
 router.get('/respostas/', AnswerControl.getAll);
 router.get('/respostas/:id', AnswerControl.getById);
-router.post('/respostas/', AnswerControl.save);
-router.put('/respostas/', AnswerControl.update);
-router.delete('/respostas/', AnswerControl.delete);
+router.post('/respostas/', userAuth, AnswerControl.save);
+router.put('/respostas/', userAuth, AnswerControl.update);
+router.delete('/respostas/', userAuth, AnswerControl.delete);
 
 //board
 router.get('/boards/', BoardControl.getAll);
 router.get('/boards/:id', BoardControl.getById);
-router.post('/boards/', BoardControl.save);
-router.put('/boards/', BoardControl.update);
-router.delete('/boards/', BoardControl.delete);
+router.post('/boards/', adminAuth, BoardControl.save);
+router.put('/boards/', adminAuth, BoardControl.update);
+router.delete('/boards/', adminAuth, BoardControl.delete);
 
 //Thread
 router.get('/threads/', ThreadControl.getAll);
 router.get('/threads/:id', ThreadControl.getById);
-router.post('/threads/', ThreadControl.save);
-router.put('/threads/', ThreadControl.update);
-router.delete('/threads/', ThreadControl.delete);
+router.post('/threads/', userAuth, ThreadControl.save);
+router.put('/threads/', userAuth, ThreadControl.update);
+router.delete('/threads/', userAuth, ThreadControl.delete);
 
 //User
 router.get('/users/', userAuth, UserControl.getAll);
-router.get('/users/:id', UserControl.find.getById);
+router.get('/users/:id', userAuth, UserControl.find.getById);
 router.post('/users/', UserControl.save);
 router.post('/login', UserControl.login)
-router.post('/logout', UserControl.logout)
-router.put('/users/', UserControl.update);
-router.delete('/users/', UserControl.delete);
+router.post('/logout', userAuth, UserControl.logout)
+router.put('/users/', userAuth, UserControl.update);
+router.delete('/users/', userAuth, UserControl.delete);
 
 
 module.exports = router;
