@@ -31,10 +31,11 @@ router.delete('/threads/', userAuth, ThreadControl.delete);
 //User
 router.get('/users/', userAuth, UserControl.getAll);
 router.get('/users/:id', userAuth, UserControl.find.getById);
+router.get('/me', userAuth, UserControl.meusDados);
 router.post('/users/', UserControl.save);
 router.post('/login', UserControl.login)
 router.post('/logout', userAuth, UserControl.logout)
-router.put('/users/', userAuth, UserControl.update);
+router.patch('/users/:id', userAuth, UserControl.update);
 router.delete('/users/', userAuth, UserControl.delete);
 
 
