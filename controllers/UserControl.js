@@ -41,6 +41,14 @@ const UserControl = {
         }
     },
 
+    gerarToken(user) {
+        return jwt.sign({
+            id: user.id,
+            nome: user.nome,
+            tipo: user.tipo
+        }, process.env.JWT_SECRET)
+    },
+
     async getAll(req, res) {
         try {
             res.json(await User.findAll())
@@ -67,7 +75,13 @@ const UserControl = {
                     ultimoIp
                 }
                 const UserInstance = await User.create(userData)
-                res.json(UserInstance);
+
+                const token = UserControl.gerarToken(UserInstance)
+                
+                res.status(201).json({
+                    msg: 'Usuário cadastrado e logado com sucesso!',
+                    token: token
+                });
             }
 
         } catch (error) {
@@ -90,18 +104,13 @@ const UserControl = {
             if (user) {
                 const senha_ok = await bcrypt.compare(password, user.password);
                 if (senha_ok) {
-                    const existingToken = jwt.sign({
-                        id: user.id,
-                        nome: user.nome,
-                        tipo: user.tipo
-                    }, process.env.JWT_SECRET);
-                    
+                    const token = UserControl.gerarToken(user)
+
                     const tokenInvalidExists = await UserControl.find.getToken(existingToken);
                     if (tokenInvalidExists) {
                         return res.status(400).json({ msg: 'Token já está inválido' });
                     }
 
-                    let token = existingToken;
                     return res.status(200).json({ msg: "Usuário logado com sucesso!", token: token });
                 } else {
                     return res.status(400).json({ error: "Nome ou Senha incorretos!" });
