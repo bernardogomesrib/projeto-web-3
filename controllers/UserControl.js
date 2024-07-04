@@ -41,6 +41,23 @@ const UserControl = {
         }
     },
 
+    gerarToken(user) {
+        return jwt.sign({
+            id: user.id,
+            nome: user.nome,
+            tipo: user.tipo
+        }, process.env.JWT_SECRET)
+    },
+
+    meusDados(req, res) {
+        const userLogged = req.user;
+        if (!userLogged) {
+            return res.status(401).json({ msg: "Unauthorized" });
+        }
+
+        return res.status(200).json({ user: userLogged });
+    },
+
     async getAll(req, res) {
         try {
             res.json(await User.findAll())
@@ -67,7 +84,12 @@ const UserControl = {
                     ultimoIp
                 }
                 const UserInstance = await User.create(userData)
-                res.json(UserInstance);
+                const token = UserControl.gerarToken(UserInstance)
+
+                res.status(201).json({
+                    msg: 'Usuário cadastrado e logado com sucesso!',
+                    token: token
+                });
             }
 
         } catch (error) {
@@ -90,18 +112,13 @@ const UserControl = {
             if (user) {
                 const senha_ok = await bcrypt.compare(password, user.password);
                 if (senha_ok) {
-                    const existingToken = jwt.sign({
-                        id: user.id,
-                        nome: user.nome,
-                        tipo: user.tipo
-                    }, process.env.JWT_SECRET);
-                    
-                    const tokenInvalidExists = await UserControl.find.getToken(existingToken);
+                    const token = UserControl.gerarToken(user)
+
+                    const tokenInvalidExists = await UserControl.find.getToken(token)
                     if (tokenInvalidExists) {
                         return res.status(400).json({ msg: 'Token já está inválido' });
                     }
 
-                    let token = existingToken;
                     return res.status(200).json({ msg: "Usuário logado com sucesso!", token: token });
                 } else {
                     return res.status(400).json({ error: "Nome ou Senha incorretos!" });
@@ -124,17 +141,13 @@ const UserControl = {
             const token = authorization.split(' ')[1];
             const tokenInvalidExists = await UserControl.find.getToken(token);
 
-            if (tokenInvalidExists) {
-                return res.status(200).json({ msg: "Token já está inválido" });
+            if (!tokenInvalidExists) {
+                await Tokens.create({
+                    token
+                });
             }
 
-            await Tokens.create({
-                token
-            });
-
-            return res.status(200).json({
-                msg: "Logout realizado com sucesso!"
-            });
+            res.status(200).json({ msg: "Logout realizado com sucesso!" })
 
         } catch (error) {
             return res.status(500).json({ msg: "Erro ao processar logout", erro: error.message });
@@ -143,18 +156,38 @@ const UserControl = {
 
     //arquivo nesta função
     async update(req, res) {
-        const { id, nome, password } = req.body
+        const { id } = req.params;
+        const userLogged = req.user;
+        const { nome, password } = req.body;
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+        if (!userLogged || id != userLogged.id) {
+            return res.status(401).json({ msg: "Unauthorized" });
+        }
+
         try {
-            const UserInstance = await User.findByPk(id);
+            const UserInstance = await User.findByPk(userLogged.id);
             if (!UserInstance) {
-                return res.status(404).json({
-                    error: 'User não encontrado'
-                });
+                return res.status(404).json({ error: 'Usuário não encontrado' });
             }
 
-            await UserInstance.update({ nome, password, ip });
-            res.json(UserInstance);
+            const updatedData = {};
+            if (nome) {
+                updatedData.nome = nome;
+            }
+            if (password) {
+                updatedData.password = await bcrypt.hash(password, 10);
+            }
+
+            updatedData.ip = ip;
+
+            await UserInstance.update(updatedData);
+
+            if (nome) {
+                await UserControl.logout(req, res)
+            } else {
+                res.status(200).send({ msg: 'Usuário atualizado com sucesso!' });
+            }
 
         } catch (error) {
             res.status(500).json({
@@ -164,6 +197,7 @@ const UserControl = {
             });
         }
     },
+
 
     async delete(req, res) {
         const { id } = req.body;
