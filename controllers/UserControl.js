@@ -21,8 +21,11 @@ const UserControl = {
         async getById(req, res) {
             const { id } = req.params;
             try {
-                const UserInstance = await User.findByPk(id)
-                UserInstance.password = "";
+                const UserInstance = await User.findByPk(id, {
+                    attributes: {
+                        exclude: ['password']
+                    }
+                })
                 return res.json(UserInstance)
             } catch (error) {
                 res.status(500).json({ error: 'Erro ao procurar User - ' + error.message })
@@ -60,7 +63,11 @@ const UserControl = {
 
     async getAll(req, res) {
         try {
-            res.json(await User.findAll())
+            res.json(await User.findAll({
+                attributes: {
+                    exclude: ['password']
+                }
+            }))
         } catch (error) {
             res.status(500).json({
                 error: 'Erro ao buscar os Users - ' + error.message,
@@ -104,7 +111,17 @@ const UserControl = {
     async login(req, res) {
         const { nome, password } = req.body;
         if (!nome || !password) {
-            return res.status(400).json({ msg: 'Dados obrigatórios não foram preenchidos' });
+            return res.status(400).json({ msg: 'Dados obrigatórios não foram preenchidos' })
+
+
+
+
+
+
+
+
+
+            
         }
 
         try {
@@ -197,7 +214,6 @@ const UserControl = {
             });
         }
     },
-
 
     async delete(req, res) {
         const { id } = req.body;

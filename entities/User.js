@@ -2,7 +2,7 @@ const sequelize = require('../db/db');
 const { DataTypes } = require("sequelize");
 const User = sequelize.define('user',{
     id:{
-        type:DataTypes.BIGINT,
+        type:DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey:true
     },
@@ -17,7 +17,7 @@ const User = sequelize.define('user',{
     },
     ultimoIp:{
         type: DataTypes.STRING(135),
-        allowNull: false
+        allowNull: false,
     },
     password:{
         type: DataTypes.STRING,

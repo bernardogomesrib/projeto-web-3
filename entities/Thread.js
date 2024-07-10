@@ -24,6 +24,7 @@ const Thread = sequelize.define('thread',{
     },
     clicks:{
         type: DataTypes.BIGINT,
+        defaultValue: 0,
         allowNull: false
     }
 })
