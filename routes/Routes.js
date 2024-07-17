@@ -6,6 +6,8 @@ const BoardControl = require('../controllers/BoardControl');
 const ThreadControl = require('../controllers/ThreadControl')
 const UserControl = require('../controllers/UserControl');
 const { adminAuth, userAuth } = require('../auth/auth');
+const handlerError = require('../middlewares/handlerError');
+const handlerValidate = require('../middlewares/handlerValidator');
 
 //answer
 router.get('/respostas/', AnswerControl.getAll);
@@ -33,8 +35,8 @@ router.delete('/threads/', userAuth, ThreadControl.delete);
 router.get('/users/', UserControl.getAll);
 router.get('/users/:id', UserControl.find.getById);
 router.get('/me', userAuth, UserControl.meusDados);
-router.post('/users/', UserControl.save);
-router.post('/login', UserControl.login)
+router.post('/users/', handlerError('user'), handlerValidate, UserControl.save);
+router.post('/login', handlerError('login'), handlerValidate, UserControl.login)
 router.post('/logout', userAuth, UserControl.logout)
 router.patch('/users/:id', userAuth, UserControl.update);
 router.delete('/users/', userAuth, UserControl.delete);

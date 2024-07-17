@@ -125,9 +125,6 @@ const UserControl = {
 
     async login(req, res) {
         const { login, password } = req.body;
-        if (!login || !password) {
-            return res.status(400).json({ msg: 'Dados obrigatórios não foram preenchidos' })
-        }
         try {
             let user
             if (login.includes('@')) {
