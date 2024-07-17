@@ -19,7 +19,7 @@ router.delete('/respostas/', userAuth, AnswerControl.delete);
 //board
 router.get('/boards/', BoardControl.getAll);
 router.get('/boards/:id', BoardControl.getById);
-router.post('/boards/', BoardControl.save);
+router.post('/boards/', adminAuth, BoardControl.save);
 router.put('/boards/', adminAuth, BoardControl.update);
 router.delete('/boards/', adminAuth, BoardControl.delete)
 
@@ -27,7 +27,7 @@ router.delete('/boards/', adminAuth, BoardControl.delete)
 router.get('/threads/', ThreadControl.getAll);
 router.get('/threads/:id', ThreadControl.getById);
 router.post('/threads/anonymous/:board', ThreadControl.save)
-router.post('/threads/:board', userAuth, ThreadControl.save);
+router.post('/:board/threads', userAuth, ThreadControl.save);
 router.put('/threads/', userAuth, ThreadControl.update);
 router.delete('/threads/', userAuth, ThreadControl.delete);
 

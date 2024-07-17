@@ -3,8 +3,7 @@ const User = require("../entities/User")
 const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken')
 const Tokens = require('../entities/Tokens')
-const smtpTransporter = require('../middlewares/nodemailerConfig')
-const { where } = require('sequelize')
+const smtpTransporter = require('../config/nodemailerConfig')
 
 const UserControl = {
     find: {
