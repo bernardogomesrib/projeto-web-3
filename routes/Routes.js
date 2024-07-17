@@ -12,7 +12,7 @@ const handlerValidate = require('../middlewares/handlerValidator');
 //answer
 router.get('/respostas/', AnswerControl.getAll);
 router.get('/respostas/:id', AnswerControl.getById);
-router.post('/respostas/', userAuth, AnswerControl.save);
+router.post('/:threadId/respostas/', userAuth, AnswerControl.save);
 router.put('/respostas/', userAuth, AnswerControl.update);
 router.delete('/respostas/', userAuth, AnswerControl.delete);
 
