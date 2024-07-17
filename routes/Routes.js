@@ -36,6 +36,8 @@ router.get('/users/', UserControl.getAll);
 router.get('/users/:id', UserControl.find.getById);
 router.get('/me', userAuth, UserControl.meusDados);
 router.post('/users/', handlerError('user'), handlerValidate, UserControl.save);
+router.post('/forget', handlerError('forget'), handlerValidate, UserControl.forget)
+router.post('/reset/:token', handlerError('reset'), handlerValidate, UserControl.reset)
 router.post('/login', handlerError('login'), handlerValidate, UserControl.login)
 router.post('/logout', userAuth, UserControl.logout)
 router.patch('/users/:id', userAuth, UserControl.update);

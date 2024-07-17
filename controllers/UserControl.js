@@ -3,6 +3,8 @@ const User = require("../entities/User")
 const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken')
 const Tokens = require('../entities/Tokens')
+const smtpTransporter = require('../middlewares/nodemailerConfig')
+const { where } = require('sequelize')
 
 const UserControl = {
     find: {
@@ -14,7 +16,7 @@ const UserControl = {
                     }
                 })
             } catch (error) {
-                throw error
+                throw new Error('Erro ao buscar usuário pelo nome ' + error.message)
             }
 
         },
@@ -26,7 +28,7 @@ const UserControl = {
                     }
                 })
             } catch (error) {
-                throw error
+                throw new Error('Erro ao buscar usuário por email ' + error.message)
             }
         },
         async getById(req, res) {
@@ -37,9 +39,12 @@ const UserControl = {
                         exclude: ['password']
                     }
                 })
+                if (!UserInstance) {
+                    return res.status(404).json({ error: 'Usuário não encontrado' });
+                }
                 return res.json(UserInstance)
             } catch (error) {
-                res.status(500).json({ error: 'Erro ao procurar User - ' + error.message })
+                throw new Error('Erro ao buscar usuário por ID' + error.message)
             }
         },
         async getToken(token) {
@@ -50,7 +55,7 @@ const UserControl = {
                     }
                 })
             } catch (error) {
-                throw error
+                throw new Error('Erro ao buscar token: ' + error.message)
             }
         }
     },
@@ -95,9 +100,9 @@ const UserControl = {
             const userName = await UserControl.find.getUserByName(nome)
             const userEmail = await UserControl.find.getUserByEmail(email)
             if (userName) {
-                res.status(400).json({ msg: "Nome de usuário já cadastrado" })
+                throw new Error('Nome de usuário já cadastrado')
             } else if (userEmail) {
-                res.status(400).json({ msg: "Email já cadastrado" })
+                throw new Error('Email já cadastrado')
             } else {
                 const userData = {
                     nome,
@@ -115,11 +120,13 @@ const UserControl = {
             }
 
         } catch (error) {
-            res.status(500).json({
-                error: 'Erro ao salvar User - ' + error.message,
-                name: error.name,
-                stack: error.stack
-            })
+            if (error.message === 'Nome de usuário já cadastrado' || error.message === 'Email já cadastrado') {
+                res.status(409).json({ error: error.message })
+            } else if (error instanceof ValidationError) {
+                res.status(400).json({ error: error.message })
+            } else {
+                res.status(500).json({ error: 'Erro interno do servidor' })
+            }
         }
     },
 
@@ -132,7 +139,7 @@ const UserControl = {
             } else {
                 user = await UserControl.find.getUserByName(login);
             }
-            
+
             if (user) {
                 const senha_ok = await bcrypt.compare(password, user.password);
                 if (senha_ok) {
@@ -145,7 +152,7 @@ const UserControl = {
 
                     return res.status(200).json({ msg: "Usuário logado com sucesso!", token: token });
                 } else {
-                    return res.status(400).json({ error: "Nome ou Senha incorretos!" });
+                    return res.status(400).json({ error: "Login ou Senha incorretos!" });
                 }
             } else {
                 return res.status(404).json({ error: "Usuário não encontrado!" });
@@ -175,6 +182,44 @@ const UserControl = {
 
         } catch (error) {
             return res.status(500).json({ msg: "Erro ao processar logout", erro: error.message });
+        }
+    },
+
+    async forget(req, res) {
+        const { email } = req.body;
+
+        try {
+            const user = await UserControl.find.getUserByEmail(email)
+            if (!user) {
+                throw new Error('Email não encontrado');
+            }
+
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+                expiresIn: '30m',
+                subject: String(user.id),
+                issuer: 'forget',
+                audience: 'users'
+            });
+
+            const mailOptions = {
+                from: '"Projeto WEB 3" <thiagojorge2001@gmail.com>',
+                to: user.email,
+                subject: 'Recuperação de senha',
+                html: `
+                    <p>Olá ${user.nome},</p>
+                    <p>Você solicitou a recuperação de senha. Clique no link abaixo para redefinir sua senha:</p>
+                    <a href="${process.env.CLIENT_URL}/reset?token=${token}">Redefinir senha</a>
+                    <p>Se você não solicitou essa recuperação, ignore este email.</p>
+                `
+            };
+
+            await smtpTransporter.sendMail(mailOptions)
+
+            await Tokens.create({ token })
+
+            return res.json({ success: true, message: 'Email de recuperação enviado com sucesso' });
+        } catch (error) {
+            return res.status(500).json({ msg: `Erro ao enviar email de recuperação de senha: ${error.message}` });
         }
     },
 
@@ -215,7 +260,11 @@ const UserControl = {
 
             updatedData.ip = ip;
 
-            await UserInstance.update(updatedData);
+            await UserInstance.update(updatedData, {
+                where: {
+                    id: userLogged.id
+                }
+            });
 
             return res.status(204)
 
@@ -225,6 +274,37 @@ const UserControl = {
                 name: error.name,
                 stack: error.stack
             });
+        }
+    },
+
+    async reset(req, res) {
+        const { token } = req.params
+        const { newPassword } = req.body
+
+        try {
+            const decodedToken = jwt.verify(token, process.env.JWT_SECRET, {
+                issuer: 'forget',
+                audience: 'users'
+            });
+
+            const user = await User.findByPk(decodedToken.id);
+            if (!user) {
+                throw new Error('Usuário não encontrado');
+            }
+
+            const tokenRecord = await UserControl.find.getToken(token);
+            if (!tokenRecord) {
+                throw new Error('Token inválido ou expirado');
+            }
+
+            const hashedPassword = await bcrypt.hash(newPassword, 10)
+            await user.update({ password: hashedPassword });
+
+            await tokenRecord.destroy();
+
+            return res.json({ success: true, message: 'Senha redefinida com sucesso' });
+        } catch (error) {
+            return res.status(500).json({ success: false, message: `Erro ao redefinir senha: ${error.message}` });
         }
     },
 
