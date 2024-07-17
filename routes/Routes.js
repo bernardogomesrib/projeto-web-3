@@ -12,7 +12,7 @@ const handlerValidate = require('../middlewares/handlerValidator');
 //answer
 router.get('/respostas/', AnswerControl.getAll);
 router.get('/respostas/:id', AnswerControl.getById);
-router.post('/respostas/', userAuth, AnswerControl.save);
+router.post('/:threadId/respostas/', userAuth, AnswerControl.save);
 router.put('/respostas/', userAuth, AnswerControl.update);
 router.delete('/respostas/', userAuth, AnswerControl.delete);
 
@@ -26,6 +26,7 @@ router.delete('/boards/', adminAuth, BoardControl.delete)
 //Thread
 router.get('/threads/', ThreadControl.getAll);
 router.get('/threads/:id', ThreadControl.getById);
+router.get('/threads', ThreadControl.searchThreads);
 router.post('/threads/anonymous/:board', ThreadControl.save)
 router.post('/:board/threads', userAuth, ThreadControl.save);
 router.put('/threads/', userAuth, ThreadControl.update);

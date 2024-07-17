@@ -23,13 +23,17 @@ const AnswerControl = {
     //arquivo nesta função
     
     async save(req,res){
+        const { threadId } = req.params
+        const userId = req.user.id
         const {mensagem,arquivo} = req.body;
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         try {
             const answer = await Answer.create({
                 mensagem,
                 arquivo,
-                ip
+                ip,
+                threadId: threadId,
+                userId: userId
             })
             return res.json(answer);
         } catch (error) {
