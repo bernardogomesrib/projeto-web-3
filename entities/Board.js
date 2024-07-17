@@ -4,16 +4,16 @@ const Threadd = require('./Thread');
 const Answer = require('./Answer');
 const User = require('./User');
 
-const Board = sequelize.define('board',{
-    id:{
-        type:DataTypes.STRING(6),
-        primaryKey:true
+const Board = sequelize.define('board', {
+    id: {
+        type: DataTypes.STRING(5),
+        primaryKey: true
     },
-    nome:{
+    nome: {
         type: DataTypes.STRING(255),
         allowNull: false
     },
-    mensagem:{
+    mensagem: {
         type: DataTypes.TEXT,
         allowNull: true
     }

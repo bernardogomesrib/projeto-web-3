@@ -2,9 +2,10 @@ require('dotenv').config()
 const express = require('express');
 const Sequelize = require('./db/db');
 const router = require('./routes/Routes');
-
+const cors = require('cors')
 const app = express();
 
+app.use(cors())
 // Middleware para fazer o parsing do corpo da solicitação JSON
 app.use(express.json());
 

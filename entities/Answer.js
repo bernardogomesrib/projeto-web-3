@@ -2,7 +2,7 @@ const sequelize = require('../db/db');
 const { DataTypes } = require("sequelize");
 const Answer = sequelize.define('answer',{
     id:{
-        type:DataTypes.BIGINT,
+        type:DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey:true
     },
