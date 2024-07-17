@@ -18,6 +18,17 @@ const UserControl = {
             }
 
         },
+        async getUserByEmail(email) {
+            try {
+                return await User.findOne({
+                    where: {
+                        email
+                    }
+                })
+            } catch (error) {
+                throw error
+            }
+        },
         async getById(req, res) {
             const { id } = req.params;
             try {
@@ -78,15 +89,19 @@ const UserControl = {
     },
 
     async save(req, res) {
-        const { nome, password } = req.body
+        const { nome, email, password } = req.body
         const ultimoIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress
         try {
-            const user = await UserControl.find.getUserByName(nome)
-            if (user) {
-                res.status(400).json({ msg: "Nome de usuário já existe" })
+            const userName = await UserControl.find.getUserByName(nome)
+            const userEmail = await UserControl.find.getUserByEmail(email)
+            if (userName) {
+                res.status(400).json({ msg: "Nome de usuário já cadastrado" })
+            } else if (userEmail) {
+                res.status(400).json({ msg: "Email já cadastrado" })
             } else {
                 const userData = {
-                    nome: nome,
+                    nome,
+                    email,
                     password: await bcrypt.hash(password, 10),
                     ultimoIp
                 }
@@ -112,18 +127,7 @@ const UserControl = {
         const { nome, password } = req.body;
         if (!nome || !password) {
             return res.status(400).json({ msg: 'Dados obrigatórios não foram preenchidos' })
-
-
-
-
-
-
-
-
-
-            
         }
-
         try {
             const user = await UserControl.find.getUserByName(nome);
             if (user) {
@@ -175,7 +179,7 @@ const UserControl = {
     async update(req, res) {
         const { id } = req.params;
         const userLogged = req.user;
-        const { nome, password } = req.body;
+        const { nome, email } = req.body;
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
         if (!userLogged || id != userLogged.id) {
@@ -190,21 +194,27 @@ const UserControl = {
 
             const updatedData = {};
             if (nome) {
-                updatedData.nome = nome;
+                const userName = await UserControl.find.getUserByName(nome)
+                if (!userName) {
+                    updatedData.nome = nome;
+                } else {
+                    return res.status(400).json({ msg: "Nome de usuário já cadastrado" })
+                }
             }
-            if (password) {
-                updatedData.password = await bcrypt.hash(password, 10);
+            if (email) {
+                const userEmail = await UserControl.find.getUserByEmail(email)
+                if (!userEmail) {
+                    updatedData.email = email
+                } else {
+                    return res.status(400).json({ msg: "Email já cadastrado" })
+                }
             }
 
             updatedData.ip = ip;
 
             await UserInstance.update(updatedData);
 
-            if (nome) {
-                await UserControl.logout(req, res)
-            } else {
-                res.status(200).send({ msg: 'Usuário atualizado com sucesso!' });
-            }
+            return res.status(204)
 
         } catch (error) {
             res.status(500).json({
