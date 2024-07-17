@@ -124,12 +124,18 @@ const UserControl = {
     },
 
     async login(req, res) {
-        const { nome, password } = req.body;
-        if (!nome || !password) {
+        const { login, password } = req.body;
+        if (!login || !password) {
             return res.status(400).json({ msg: 'Dados obrigatórios não foram preenchidos' })
         }
         try {
-            const user = await UserControl.find.getUserByName(nome);
+            let user
+            if (login.includes('@')) {
+                user = await UserControl.find.getUserByEmail(login);
+            } else {
+                user = await UserControl.find.getUserByName(login);
+            }
+            
             if (user) {
                 const senha_ok = await bcrypt.compare(password, user.password);
                 if (senha_ok) {
