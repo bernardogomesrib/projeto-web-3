@@ -31,6 +31,11 @@ function handlerError(method) {
                     ('Senha deve conter ao menos uma letra maiúscula, uma minúscula, um caractere especial e um número')
             ]
         }
+        case 'threads': {
+            return [
+                body('titulo').exists().withMessage('Titulo deve ser preenchido!')
+            ]
+        }
     }
 }
 

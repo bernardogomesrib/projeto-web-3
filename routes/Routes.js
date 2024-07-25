@@ -26,14 +26,14 @@ router.delete('/boards/', adminAuth, BoardControl.delete)
 //Thread
 router.get('/threads/', ThreadControl.getAll);
 router.get('/threads/:id', ThreadControl.getById);
-router.get('/threads', ThreadControl.searchThreads);
-router.post('/threads/anonymous/:board', ThreadControl.save)
-router.post('/:board/threads', userAuth, ThreadControl.save);
+router.get('/threads/search/:filters', ThreadControl.searchThreads);
+router.post('/:board/threads/anonymous', handlerError('threads'), handlerValidate, ThreadControl.save)
+router.post('/:board/threads', userAuth, handlerError('threads'), handlerValidate, ThreadControl.save);
 router.put('/threads/', userAuth, ThreadControl.update);
 router.delete('/threads/', userAuth, ThreadControl.delete);
 
 //User
-router.get('/users/', UserControl.getAll);
+router.get('/users/', adminAuth ,UserControl.getAll);
 router.get('/users/:id', UserControl.find.getById);
 router.get('/me', userAuth, UserControl.meusDados);
 router.post('/users/', handlerError('user'), handlerValidate, UserControl.save);

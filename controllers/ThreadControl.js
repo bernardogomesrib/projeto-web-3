@@ -5,21 +5,15 @@ const Board = require("../entities/Board");
 const { off } = require("../config/nodemailerConfig");
 
 const ThreadControl = {
-    getPagingData(data, page, limit){
-        const { count: totalItems, rows: tutorials } = data;
-        const currentPage = page ? +page : 0;
-        const totalPages = Math.ceil(totalItems / limit);
-      
-        return { totalItems, tutorials, totalPages, currentPage };
-    },
 
     async getAll(req, res) {
         const { page, size } = req.query
-        
+        const pageNumber = Math.max(1, Number(page) || 1);
+        const sizeNumber = 20
         try {
             res.json(await Thread.findAll({
-                limit: Number(size),
-                offset: (Number(page) - 1) * Number(size),
+                limit: sizeNumber,
+                offset: (pageNumber - 1) * sizeNumber,
             }));
         } catch (error) {
             res.status(500).json({
@@ -32,18 +26,18 @@ const ThreadControl = {
 
     async searchThreads(req, res) {
         try {
-            const { pesquisa } = req.query
+            const { filters } = req.params
             const threads = await Thread.findAll({
                 where: {
                     [Op.or]: [
                         {
                             titulo: {
-                                [Op.like]: `%${pesquisa}%`
+                                [Op.like]: `%${filters}%`
                             }
                         },
                         {
                             mensagem: {
-                                [Op.like]: `%${pesquisa}%`
+                                [Op.like]: `%${filters}%`
                             }
                         }
                     ]

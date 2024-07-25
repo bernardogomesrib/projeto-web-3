@@ -20,14 +20,22 @@ const BoardControl = {
             res.status(500).json({error: 'Erro ao procurar board - '+error.message})
         }
     },
+
     async save(req,res){
-        const {mensagem,nome,id} = req.body;
+        const {mensagem,nome,id} = req.body
+
+        const board = await Board.findByPk(id)
 
         try {
+            if(board){
+                return res.status(400).json({
+                    error:'board já existe'
+                })
+            }
             const boardInstance = await Board.create({
                 mensagem,nome,id
             })
-            res.json(boardInstance);
+            res.json(boardInstance)
         } catch (error) {
             res.status(500).json({
                 error:'Erro ao salvar board - '+ error.message,
