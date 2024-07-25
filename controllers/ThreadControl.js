@@ -26,18 +26,18 @@ const ThreadControl = {
 
     async searchThreads(req, res) {
         try {
-            const { pesquisa } = req.query
+            const { filters } = req.params
             const threads = await Thread.findAll({
                 where: {
                     [Op.or]: [
                         {
                             titulo: {
-                                [Op.like]: `%${pesquisa}%`
+                                [Op.like]: `%${filters}%`
                             }
                         },
                         {
                             mensagem: {
-                                [Op.like]: `%${pesquisa}%`
+                                [Op.like]: `%${filters}%`
                             }
                         }
                     ]
