@@ -1,6 +1,8 @@
 require('dotenv').config()
 const express = require('express');
 const Sequelize = require('./db/db');
+const swaggerUI = require('swagger-ui-express')
+const swaggerDocument = require('./swagger.json')
 const router = require('./routes/Routes');
 const cors = require('cors')
 const app = express();
@@ -11,6 +13,9 @@ app.use(express.json());
 
 // Rotas
 app.use(router);
+
+// Configuração do Swagger
+app.use('/', swaggerUI.serve, swaggerUI.setup(swaggerDocument))
 
 // Inicie o servidor
 app.listen(3000, () => {
