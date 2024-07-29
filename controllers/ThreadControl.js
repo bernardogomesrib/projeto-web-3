@@ -2,11 +2,11 @@ const { Op } = require("sequelize");
 const Clicks = require("../entities/Clicks");
 const Thread = require("../entities/Thread");
 const Board = require("../entities/Board");
-const { off } = require("../config/nodemailerConfig");
 
 const ThreadControl = {
 
     async getAll(req, res) {
+        // #swagger.tags = ['Thread']
         const { page, size } = req.query
         const pageNumber = Math.max(1, Number(page) || 1);
         const sizeNumber = 20
@@ -25,6 +25,7 @@ const ThreadControl = {
     },
 
     async searchThreads(req, res) {
+        // #swagger.tags = ['Thread']
         try {
             const { filters } = req.params
             const threads = await Thread.findAll({
@@ -54,6 +55,7 @@ const ThreadControl = {
     },
 
     async getById(req, res) {
+        // #swagger.tags = ['Thread']
         const { id } = req.params;
         const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
         try {
@@ -91,8 +93,8 @@ const ThreadControl = {
         }
     },
 
-    // arquivo nesta função
     async save(req, res) {
+        // #swagger.tags = ['Thread']
         const board = req.params.board;
         const user = req.user;
         const { titulo, mensagem, arquivo } = req.body;
@@ -133,20 +135,64 @@ const ThreadControl = {
         }
     },
 
-    //arquivo nesta função
-    async update(req, res) {
-        const { id, titulo, mensagem, arquivo } = req.body;
+    async getByTitle(title) {
+        try {
+            return await Thread.findOne({
+                where: {
+                    title
+                }
+            })
+        } catch (error) {
+            throw new Error('Erro ao buscar thread pelo titulo ' + error.message)
+        }
+    },
+
+    async updateThread(req, res) {
+        // #swagger.tags = ['Thread']
+        // #swagger.security = [{ "Bearer": [] }]
+        // #swagger.parameters['id'] = { description: 'ID da thread' }
+        const { id } = req.params;
+        const { titulo, mensagem, arquivo } = req.body;
         const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        const userLogged = req.user;
+
         try {
             const ThreadInstance = await Thread.findByPk(id);
             if (!ThreadInstance) {
-                return res.status(404).json({
-                    error: "Thread não encontrado",
-                });
+                return res.status(404).json({ error: "Thread não encontrada" });
             }
 
-            await ThreadInstance.update({ titulo, mensagem, arquivo });
-            res.json(ThreadInstance);
+            if (ThreadInstance.userId !== userLogged.id) {
+                return res.status(401).json({ msg: "Unauthorized" });
+            }
+
+            const updatedData = {}
+            if (titulo) {
+                const titleExist = await ThreadControl.getByTitle(titulo)
+                if(!titleExist){
+                    updatedData.titulo = titulo
+                } else {
+                    return res.status(400).json({ msg: "Titulo da thread já existe!"})
+                }
+            }
+
+            if (mensagem) {
+                updatedData.mensagem = mensagem
+            }
+
+            if (arquivo) {
+                updatedData.arquivo = arquivo
+            }
+
+            updatedData.ip = ip;
+
+            await ThreadInstance.update(updatedData, {
+                where: {
+                    id
+                }
+            });
+
+            res.sendStatus(204)
         } catch (error) {
             res.status(500).json({
                 error: "Erro ao atualizar Thread - " + error.message,
@@ -157,6 +203,7 @@ const ThreadControl = {
     },
 
     async delete(req, res) {
+        // #swagger.tags = ['Thread']
         const { id } = req.body;
 
         const ThreadInstance = await Thread.findByPk(id);

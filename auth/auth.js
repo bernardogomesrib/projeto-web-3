@@ -11,7 +11,7 @@ function routerAccess(tipos) {
         const [, token] = authHeader.split(' ')
 
         try {
-            const tokenInvalidExists = await UserControl.find.getToken(token)
+            const tokenInvalidExists = await UserControl.getToken(token)
             if (tokenInvalidExists) {
                 return res.status(401).json({ msg: 'Faça login novamente!' })
             }

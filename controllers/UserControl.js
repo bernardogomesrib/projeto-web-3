@@ -6,59 +6,40 @@ const Tokens = require('../entities/Tokens')
 const smtpTransporter = require('../config/nodemailerConfig')
 
 const UserControl = {
-    find: {
-        async getUserByName(nome) {
-            try {
-                return await User.findOne({
-                    where: {
-                        nome
-                    }
-                })
-            } catch (error) {
-                throw new Error('Erro ao buscar usuário pelo nome ' + error.message)
-            }
-
-        },
-        async getUserByEmail(email) {
-            try {
-                return await User.findOne({
-                    where: {
-                        email
-                    }
-                })
-            } catch (error) {
-                throw new Error('Erro ao buscar usuário por email ' + error.message)
-            }
-        },
-        async getById(req, res) {
-            const { id } = req.params;
-            try {
-                const UserInstance = await User.findByPk(id, {
-                    attributes: {
-                        exclude: ['password']
-                    }
-                })
-                if (!UserInstance) {
-                    return res.status(404).json({ error: 'Usuário não encontrado' });
+    async getUserByName(nome) {
+        try {
+            return await User.findOne({
+                where: {
+                    nome
                 }
-                return res.json(UserInstance)
-            } catch (error) {
-                throw new Error('Erro ao buscar usuário por ID' + error.message)
-            }
-        },
-        async getToken(token) {
-            try {
-                return await Tokens.findOne({
-                    where: {
-                        token
-                    }
-                })
-            } catch (error) {
-                throw new Error('Erro ao buscar token: ' + error.message)
-            }
+            })
+        } catch (error) {
+            throw new Error('Erro ao buscar usuário pelo nome ' + error.message)
+        }
+
+    },
+    async getUserByEmail(email) {
+        try {
+            return await User.findOne({
+                where: {
+                    email
+                }
+            })
+        } catch (error) {
+            throw new Error('Erro ao buscar usuário por email ' + error.message)
         }
     },
-
+    async getToken(token) {
+        try {
+            return await Tokens.findOne({
+                where: {
+                    token
+                }
+            })
+        } catch (error) {
+            throw new Error('Erro ao buscar token: ' + error.message)
+        }
+    },
     gerarToken(user) {
         return jwt.sign({
             id: user.id,
@@ -68,6 +49,8 @@ const UserControl = {
     },
 
     meusDados(req, res) {
+        // #swagger.tags = ['Auth']
+        // #swagger.security = [{ "Bearer": [] }]
         const userLogged = req.user;
         if (!userLogged) {
             return res.status(401).json({ msg: "Unauthorized" });
@@ -77,6 +60,8 @@ const UserControl = {
     },
 
     async getAll(req, res) {
+        // #swagger.tags = ['User']
+        // #swagger.security = [{ "Bearer": [] }]
         try {
             res.json(await User.findAll({
                 attributes: {
@@ -92,12 +77,33 @@ const UserControl = {
         }
     },
 
+    async getById(req, res) {
+        // #swagger.tags = ['User']
+        // #swagger.security = [{ "Bearer": [] }]
+        // #swagger.parameters['id'] = { description: 'ID do usuário' }
+        const { id } = req.params;
+        try {
+            const UserInstance = await User.findByPk(id, {
+                attributes: {
+                    exclude: ['password']
+                }
+            })
+            if (!UserInstance) {
+                return res.status(404).json({ error: 'Usuário não encontrado' });
+            }
+            return res.json(UserInstance)
+        } catch (error) {
+            throw new Error('Erro ao buscar usuário por ID' + error.message)
+        }
+    },
+
     async save(req, res) {
+        // #swagger.tags = ['User']
         const { nome, email, password } = req.body
         const ultimoIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress
         try {
-            const userName = await UserControl.find.getUserByName(nome)
-            const userEmail = await UserControl.find.getUserByEmail(email)
+            const userName = await UserControl.getUserByName(nome)
+            const userEmail = await UserControl.getUserByEmail(email)
             if (userName) {
                 throw new Error('Nome de usuário já cadastrado')
             } else if (userEmail) {
@@ -130,13 +136,14 @@ const UserControl = {
     },
 
     async login(req, res) {
+        // #swagger.tags = ['Auth']
         const { login, password } = req.body;
         try {
             let user
             if (login.includes('@')) {
-                user = await UserControl.find.getUserByEmail(login);
+                user = await UserControl.getUserByEmail(login);
             } else {
-                user = await UserControl.find.getUserByName(login);
+                user = await UserControl.getUserByName(login);
             }
 
             if (user) {
@@ -144,7 +151,7 @@ const UserControl = {
                 if (senha_ok) {
                     const token = UserControl.gerarToken(user)
 
-                    const tokenInvalidExists = await UserControl.find.getToken(token)
+                    const tokenInvalidExists = await UserControl.getToken(token)
                     if (tokenInvalidExists) {
                         return res.status(400).json({ msg: 'Token já está inválido' });
                     }
@@ -162,6 +169,7 @@ const UserControl = {
     },
 
     async logout(req, res) {
+        // #swagger.tags = ['Auth']
         try {
             const { authorization } = req.headers;
             if (!authorization) {
@@ -169,7 +177,7 @@ const UserControl = {
             }
 
             const token = authorization.split(' ')[1];
-            const tokenInvalidExists = await UserControl.find.getToken(token);
+            const tokenInvalidExists = await UserControl.getToken(token);
 
             if (!tokenInvalidExists) {
                 await Tokens.create({
@@ -185,10 +193,12 @@ const UserControl = {
     },
 
     async forget(req, res) {
+        // #swagger.tags = ['User']
+        // #swagger.security = [{ "Bearer": [] }]
         const { email } = req.body;
 
         try {
-            const user = await UserControl.find.getUserByEmail(email)
+            const user = await UserControl.getUserByEmail(email)
             if (!user) {
                 throw new Error('Email não encontrado');
             }
@@ -224,6 +234,9 @@ const UserControl = {
 
     //arquivo nesta função
     async update(req, res) {
+        // #swagger.tags = ['User']
+        // #swagger.security = [{ "Bearer": [] }]
+        // #swagger.parameters['id'] = { description: 'ID do usuário' }
         const { id } = req.params;
         const userLogged = req.user;
         const { nome, email } = req.body;
@@ -241,7 +254,7 @@ const UserControl = {
 
             const updatedData = {};
             if (nome) {
-                const userName = await UserControl.find.getUserByName(nome)
+                const userName = await UserControl.getUserByName(nome)
                 if (!userName) {
                     updatedData.nome = nome;
                 } else {
@@ -249,7 +262,7 @@ const UserControl = {
                 }
             }
             if (email) {
-                const userEmail = await UserControl.find.getUserByEmail(email)
+                const userEmail = await UserControl.getUserByEmail(email)
                 if (!userEmail) {
                     updatedData.email = email
                 } else {
@@ -265,7 +278,7 @@ const UserControl = {
                 }
             });
 
-            return res.status(204)
+            res.sendStatus(204)
 
         } catch (error) {
             res.status(500).json({
@@ -277,6 +290,7 @@ const UserControl = {
     },
 
     async reset(req, res) {
+        // #swagger.tags = ['User']
         const { token } = req.params
         const { newPassword } = req.body
 
@@ -291,7 +305,7 @@ const UserControl = {
                 throw new Error('Usuário não encontrado');
             }
 
-            const tokenRecord = await UserControl.find.getToken(token);
+            const tokenRecord = await UserControl.getToken(token);
             if (!tokenRecord) {
                 throw new Error('Token inválido ou expirado');
             }
@@ -308,6 +322,8 @@ const UserControl = {
     },
 
     async delete(req, res) {
+        // #swagger.tags = ['User']
+        // #swagger.security = [{ "Bearer": [] }]
         const { id } = req.body;
 
         const UserInstance = await User.findByPk(id);

@@ -1,6 +1,7 @@
 const Board  = require("../entities/Board")
 const BoardControl = {
     async getAll(req,res){
+        // #swagger.tags = ['Board']
         try {
             res.json(await Board.findAll())
         } catch (error) {
@@ -13,6 +14,7 @@ const BoardControl = {
     },
 
     async getById(req,res){
+        // #swagger.tags = ['Board']
         const {id} = req.params;
         try {
             return res.json(await Board.findByPk(id));
@@ -22,6 +24,8 @@ const BoardControl = {
     },
 
     async save(req,res){
+        // #swagger.tags = ['Board']
+        // #swagger.security = [{ "Bearer": [] }]
         const {mensagem,nome,id} = req.body
 
         const board = await Board.findByPk(id)
@@ -44,22 +48,37 @@ const BoardControl = {
             })
         }
     },
-    async update(req,res){
-        const {id,mensagem,nome} = req.body
+
+    async update(req, res) {
+        // #swagger.tags = ['Board']
+        // #swagger.security = [{ "Bearer": [] }]
+        const { id } = req.body;
+        const { mensagem, nome } = req.body;
+
         try {
             const boardInstance = await Board.findByPk(id);
-            if(!boardInstance){
+            if (!boardInstance) {
                 return res.status(404).json({
-                    error: 'board não encontrado'
+                    error: 'Board não encontrado'
                 });
             }
-    
-            await boardInstance.update({ mensagem, nome });
-            res.json(boardInstance);
-    
+
+            const updatedData = {};
+            if (mensagem) {
+                updatedData.mensagem = mensagem;
+            }
+
+            if (nome) {
+                updatedData.nome = nome;
+            }
+
+            await boardInstance.update(updatedData)
+
+            res.sendStatus(204)
+
         } catch (error) {
             res.status(500).json({
-                error: 'Erro ao atualizar board - ' + error.message,
+                error: 'Erro ao atualizar Board - ' + error.message,
                 name: error.name,
                 stack: error.stack
             });
@@ -67,6 +86,8 @@ const BoardControl = {
     },
     
     async delete(req,res){
+        // #swagger.tags = ['Board']
+        // #swagger.security = [{ "Bearer": [] }]
         const {id}= req.body;
 
         const board = await Board.findByPk(id);
