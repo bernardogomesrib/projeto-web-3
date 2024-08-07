@@ -8,6 +8,7 @@ const UserControl = require('../controllers/UserControl');
 const { adminAuth, userAuth } = require('../auth/auth');
 const handlerError = require('../middlewares/handlerError');
 const handlerValidate = require('../middlewares/handlerValidator');
+const { uploadMiddleware, uploadFile } = require('../middlewares/upload');
 
 //answer
 router.get('/respostas/', AnswerControl.getAll);
@@ -27,9 +28,9 @@ router.delete('/boards/', adminAuth, BoardControl.delete)
 router.get('/threads/', ThreadControl.getAll);
 router.get('/threads/:id', ThreadControl.getById);
 router.get('/threads/search/:filters', ThreadControl.searchThreads);
-router.post('/:board/threads/anonymous', handlerError('threads'), handlerValidate, ThreadControl.save)
-router.post('/:board/threads', userAuth, handlerError('threads'), handlerValidate, ThreadControl.save)
-router.patch('/threads/:id', userAuth, ThreadControl.updateThread)
+router.post('/:board/threads/anonymous', uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.save);
+router.post('/:board/threads', userAuth, uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.save);
+router.patch('/threads/:id', userAuth, uploadMiddleware, uploadFile, ThreadControl.updateThread);
 router.delete('/threads/', userAuth, ThreadControl.delete);
 
 //User
