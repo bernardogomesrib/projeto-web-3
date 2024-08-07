@@ -388,6 +388,9 @@
           "201": {
             "description": "Created"
           },
+          "404": {
+            "description": "Not Found"
+          },
           "500": {
             "description": "Internal Server Error"
           }
@@ -435,8 +438,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "ID da thread"
+            "type": "string"
           },
           {
             "name": "x-forwarded-for",
@@ -453,9 +455,6 @@
                   "example": "any"
                 },
                 "mensagem": {
-                  "example": "any"
-                },
-                "arquivo": {
                   "example": "any"
                 }
               }
@@ -478,12 +477,7 @@
           "500": {
             "description": "Internal Server Error"
           }
-        },
-        "security": [
-          {
-            "Bearer": []
-          }
-        ]
+        }
       }
     },
     "/threads/search/{filters}": {
@@ -539,9 +533,6 @@
                 },
                 "mensagem": {
                   "example": "any"
-                },
-                "arquivo": {
-                  "example": "any"
                 }
               }
             }
@@ -591,9 +582,6 @@
                   "example": "any"
                 },
                 "mensagem": {
-                  "example": "any"
-                },
-                "arquivo": {
                   "example": "any"
                 }
               }
