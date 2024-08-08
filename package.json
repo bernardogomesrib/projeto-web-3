@@ -24,7 +24,6 @@
     "nodemon": "^3.1.0",
     "sequelize": "^6.37.1",
     "swagger-autogen": "^2.23.7",
-    "swagger-ui-express": "^5.0.1",
-    "uuid-v4": "^0.1.0"
+    "swagger-ui-express": "^5.0.1"
   }
 }

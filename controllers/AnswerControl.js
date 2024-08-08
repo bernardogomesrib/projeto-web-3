@@ -22,13 +22,27 @@ const AnswerControl = {
         }
     },
 
-    //arquivo nesta função
-
     async save(req, res) {
-        // #swagger.tags = ['Answer']
-        const { threadId } = req.params
-        const userId = req.user.id
-        const { mensagem, arquivo } = req.body;
+        /* #swagger.tags = ['Answer']
+            #swagger.consumes = ['multipart/form-data']
+            #swagger.parameters['id'] = { description: 'ID da thread', required: true }
+            #swagger.parameters['image'] ={
+                in: 'formData',
+                type: 'file',
+                required: false,
+                description: 'Arquivo de imagem'
+            }
+           #swagger.parameters['mensagem'] = {
+                in: 'formData',
+                type: 'string',
+                required: false,
+                description: 'Resposta de uma thread'
+            }  
+        */
+        const { threadId } = req.params;
+        const userId = req.user.id;
+        const { mensagem } = req.body;
+        const arquivo = req.file ? req.file.firebaseUrl : null;
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         try {
             const answer = await Answer.create({
@@ -50,9 +64,25 @@ const AnswerControl = {
 
     async update(req, res) {
         // #swagger.tags = ['Answer']
-        // #swagger.security = [{ "Bearer": [] }]
+        /* #swagger.tags = ['Answer']
+            #swagger.consumes = ['multipart/form-data']
+            #swagger.parameters['image'] ={
+                in: 'formData',
+                type: 'file',
+                required: false,
+                description: 'Arquivo de imagem'
+            }
+           #swagger.parameters['mensagem'] = {
+                in: 'formData',
+                type: 'string',
+                required: false,
+                description: 'Resposta de uma thread'
+            }
+             
+        */
         const { id } = req.params;
-        const { mensagem, arquivo } = req.body;
+        const { mensagem } = req.body;
+        const arquivo = req.file ? req.file.firebaseUrl : null;
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
         try {
@@ -85,14 +115,13 @@ const AnswerControl = {
             });
         }
     },
-    
+
     async delete(req, res) {
         // #swagger.tags = ['Answer']
         const { id } = req.body;
 
         const answer = await Answer.findByPk(id);
         try {
-
             if (!answer) {
                 return req.status(404).json({
                     error: 'Não existe a resposta'
