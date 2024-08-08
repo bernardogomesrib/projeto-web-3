@@ -1,13 +1,12 @@
 const multer = require('multer');
-const uuid = require('uuid-v4');
 var admin = require("firebase-admin");
 const firebaseConfig = require('../config/firebaseConfig');
 
 admin.initializeApp({
-  credential: admin.credential.cert(firebaseConfig),
-  databaseURL: "https://projetoweb3-b30a2.firebaseio.com",
-  storageBucket: "gs://projetoweb3-b30a2.appspot.com"
-});
+    credential: admin.credential.cert(firebaseConfig),
+    databaseURL: `https://${process.env.project_id}.firebaseio.com`,
+    storageBucket: `gs://${process.env.project_id}.appspot.com`
+  });
 
 const bucket = admin.storage().bucket();
 const storage = multer.memoryStorage();
@@ -26,7 +25,7 @@ const uploadFile = (req, res, next) => {
             contentType: req.file.mimetype,
             cacheControl: "public, max-age=31536000"
         },
-        public: true, // Esta linha define a permissão pública
+        public: true,
         gzip: true
     });
 
@@ -35,10 +34,8 @@ const uploadFile = (req, res, next) => {
     });
 
     blobStream.on("finish", async () => {
-        // Define a permissão de leitura pública após o upload
         await blob.makePublic();
 
-        // URL acessível publicamente
         req.file.firebaseUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
         next();
     });

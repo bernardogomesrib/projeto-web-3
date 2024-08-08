@@ -232,7 +232,6 @@ const UserControl = {
         }
     },
 
-    //arquivo nesta função
     async update(req, res) {
         // #swagger.tags = ['User']
         // #swagger.security = [{ "Bearer": [] }]

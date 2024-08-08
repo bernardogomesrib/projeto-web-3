@@ -11,6 +11,7 @@ DB_NAME="nome do banco"
 DB_USERNAME="nome do usuario"
 DB_PASSWORD="senha do usuario"
 DB_HOST="host do banco"
+DB_PORT="porta do banco"
 JWT_SECRET="Alguma string aqui"
 ```
 
