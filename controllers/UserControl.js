@@ -211,7 +211,7 @@ const UserControl = {
             });
 
             const mailOptions = {
-                from: '"Projeto WEB 3" <thiagojorge2001@gmail.com>',
+                from: '"Projeto WEB 3" <noreply@ifthreads.com>',
                 to: user.email,
                 subject: 'Recuperação de senha',
                 html: `

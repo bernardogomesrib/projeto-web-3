@@ -433,12 +433,37 @@
           "Thread"
         ],
         "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "description": "ID da thread"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": false,
+            "description": "Arquivo de imagem"
+          },
+          {
+            "name": "titulo",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "Título da thread"
+          },
+          {
+            "name": "mensagem",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "Mensagem da thread"
           },
           {
             "name": "x-forwarded-for",
@@ -477,7 +502,12 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/threads/search/{filters}": {
@@ -510,12 +540,37 @@
           "Thread"
         ],
         "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
             "name": "board",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "description": "ID do board"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": false,
+            "description": "Arquivo de imagem"
+          },
+          {
+            "name": "titulo",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Título da thread"
+          },
+          {
+            "name": "mensagem",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Mensagem da thread"
           },
           {
             "name": "x-forwarded-for",
@@ -560,12 +615,37 @@
           "Thread"
         ],
         "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
             "name": "board",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "description": "ID do board"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": false,
+            "description": "Arquivo de imagem"
+          },
+          {
+            "name": "titulo",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Título da thread"
+          },
+          {
+            "name": "mensagem",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Mensagem da thread"
           },
           {
             "name": "x-forwarded-for",
