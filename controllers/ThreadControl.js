@@ -10,12 +10,10 @@ const ThreadControl = {
         const pageNumber = Math.max(1, Number(page) || 1);
         const sizeNumber = 20;
         try {
-            res.json(
-                await Thread.findAll({
-                    limit: sizeNumber,
-                    offset: (pageNumber - 1) * sizeNumber,
-                })
-            );
+            res.json(await Thread.findAll({
+                limit: sizeNumber,
+                offset: (pageNumber - 1) * sizeNumber,
+            }));
         } catch (error) {
             res.status(500).json({
                 error: "Erro ao buscar os Threads - " + error.message,
@@ -34,15 +32,15 @@ const ThreadControl = {
                     [Op.or]: [
                         {
                             titulo: {
-                                [Op.like]: `%${filters}%`,
-                            },
+                                [Op.like]: `%${filters}%`
+                            }
                         },
                         {
                             mensagem: {
-                                [Op.like]: `%${filters}%`,
-                            },
-                        },
-                    ],
+                                [Op.like]: `%${filters}%`
+                            }
+                        }
+                    ]
                 },
             });
             res.json(threads);
@@ -88,15 +86,33 @@ const ThreadControl = {
                 return res.json(thread);
             }
         } catch (error) {
-            res
-                .status(500)
-                .json({ error: "Erro ao procurar Thread - " + error.message });
+            res.status(500).json({ error: "Erro ao procurar Thread - " + error.message });
         }
     },
 
     async save(req, res) {
-        //  #swagger.tags = ['Thread']
-
+        /*  #swagger.tags = ['Thread']
+            #swagger.consumes = ['multipart/form-data']
+            #swagger.parameters['board'] = { description: 'ID do board', required: true }
+            #swagger.parameters['image'] = {
+                in: 'formData',
+                type: 'file',
+                required: false,
+                description: 'Arquivo de imagem'
+            }
+            #swagger.parameters['titulo'] = {
+                in: 'formData',
+                type: 'string',
+                required: true,
+                description: 'Título da thread'
+            }
+            #swagger.parameters['mensagem'] = {
+                in: 'formData',
+                type: 'string',
+                required: true,
+                description: 'Mensagem da thread'
+            }
+        */
         const board = req.params.board;
         const user = req.user;
         const { titulo, mensagem } = req.body;
@@ -105,7 +121,9 @@ const ThreadControl = {
         try {
             const boardId = await Board.findByPk(board);
             if (!boardId) {
-                return res.status(404).json({ error: "Board não encontrado" });
+                return res.status(404).json({
+                    error: "Board não encontrado",
+                });
             }
             const threadData = {
                 titulo,
@@ -132,16 +150,38 @@ const ThreadControl = {
         try {
             return await Thread.findOne({
                 where: {
-                    titulo: title,
-                },
+                    titulo: title
+                }
             });
         } catch (error) {
-            throw new Error("Erro ao buscar thread pelo titulo " + error.message);
+            throw new Error('Erro ao buscar thread pelo titulo ' + error.message);
         }
     },
 
     async updateThread(req, res) {
-        // #swagger.tags = ['Thread']
+        /*  #swagger.tags = ['Thread']
+            #swagger.consumes = ['multipart/form-data']
+            #swagger.security = [{ "Bearer": [] }]
+            #swagger.parameters['id'] = { description: 'ID da thread', required: true }
+            #swagger.parameters['image'] = {
+                in: 'formData',
+                type: 'file',
+                required: false,
+                description: 'Arquivo de imagem'
+            }
+            #swagger.parameters['titulo'] = {
+                in: 'formData',
+                type: 'string',
+                required: false,
+                description: 'Título da thread'
+            }
+            #swagger.parameters['mensagem'] = {
+                in: 'formData',
+                type: 'string',
+                required: false,
+                description: 'Mensagem da thread'
+            }
+        */
         const { id } = req.params;
         const { titulo, mensagem } = req.body;
         const arquivo = req.file ? req.file.firebaseUrl : null;
@@ -180,8 +220,8 @@ const ThreadControl = {
 
             await ThreadInstance.update(updatedData, {
                 where: {
-                    id,
-                },
+                    id
+                }
             });
 
             res.sendStatus(204);

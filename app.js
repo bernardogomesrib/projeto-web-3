@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(router);
 
 // Configuração do Swagger
-app.use('/', swaggerUI.serve, swaggerUI.setup(swaggerDocument))
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument))
 
 // Inicie o servidor
 app.listen(3000, () => {
