@@ -2,10 +2,10 @@ const swaggerAutogen = require('swagger-autogen')()
 
 const doc = {
     info: {
-        title: "API Projeto WEB 3",
+        title: "API IFThreads",
         description: 'Projeto para a disciplina de WEB 3'
     },
-    host: 'localhost:3000',
+    host: process.env.API_URL,
     schemes: ['http'],
     securityDefinitions: {
         Bearer: {
