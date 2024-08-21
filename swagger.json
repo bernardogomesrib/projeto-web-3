@@ -1,11 +1,10 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "API Projeto WEB 3",
+    "title": "API IFThreads",
     "description": "Projeto para a disciplina de WEB 3",
     "version": "1.0.0"
   },
-  "host": "localhost:3000",
   "basePath": "/",
   "schemes": [
     "http"
@@ -433,6 +432,25 @@
         }
       }
     },
+    "/threads/recent": {
+      "get": {
+        "tags": [
+          "Thread"
+        ],
+        "description": "Retorna uma lista das 10 threads mais recentes, ordenadas pela data de criação em ordem decrescente.",
+        "responses": {
+          "200": {
+            "description": "Lista das threads mais recentes."
+          },
+          "404": {
+            "description": "Não existe threads"
+          },
+          "500": {
+            "description": "Erro ao buscar threads mais recentes."
+          }
+        }
+      }
+    },
     "/threads/{id}": {
       "get": {
         "tags": [
@@ -566,6 +584,31 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/boards/{boardId}/threads": {
+      "get": {
+        "tags": [
+          "Thread"
+        ],
+        "description": "Retorna todas as threads de um board específico.",
+        "parameters": [
+          {
+            "name": "boardId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID do board"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista das threads do board."
+          },
+          "500": {
+            "description": "Erro ao buscar threads do board."
           }
         }
       }
@@ -1062,6 +1105,22 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/boards/popular": {
+      "get": {
+        "tags": [
+          "Board"
+        ],
+        "description": "Retorna uma lista dos 10 boards mais populares, baseados no número de threads e respostas associadas a eles.",
+        "responses": {
+          "200": {
+            "description": "Lista dos boards mais populares."
+          },
+          "500": {
+            "description": "Erro ao buscar boards mais populares."
           }
         }
       }

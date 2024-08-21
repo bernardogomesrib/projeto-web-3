@@ -17,14 +17,17 @@ router.patch('/respostas/:id', userAuth, uploadMiddleware, uploadFile, AnswerCon
 router.delete('/respostas/', userAuth, AnswerControl.delete);
 
 router.get('/boards/', BoardControl.getAll);
+router.get('/boards/popular', BoardControl.getPopularBoards);
 router.get('/boards/:id', BoardControl.getById);
 router.post('/boards/', adminAuth, BoardControl.save);
 router.patch('/boards/', adminAuth, BoardControl.update);
-router.delete('/boards/', adminAuth, BoardControl.delete)
+router.delete('/boards/', adminAuth, BoardControl.delete);
 
 router.get('/threads/', ThreadControl.getAll);
+router.get('/threads/recent', ThreadControl.getRecentThreads);
 router.get('/threads/:id', ThreadControl.getById);
 router.get('/threads/search/:filters', ThreadControl.searchThreads);
+router.get('/boards/:boardId/threads', ThreadControl.getThreadsByBoard);
 router.post('/:board/threads/anonymous', uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.save);
 router.post('/:board/threads', userAuth, uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.save);
 router.patch('/threads/:id', userAuth, uploadMiddleware, uploadFile, ThreadControl.updateThread);
