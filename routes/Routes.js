@@ -19,7 +19,7 @@ router.delete('/respostas/', userAuth, AnswerControl.delete);
 router.get('/boards/', BoardControl.getAll);
 router.get('/boards/popular', BoardControl.getPopularBoards);
 router.get('/boards/:id', BoardControl.getById);
-router.post('/boards/', adminAuth, BoardControl.save);
+router.post('/boards/', adminAuth, uploadMiddleware, uploadFile, BoardControl.save);
 router.patch('/boards/', adminAuth, BoardControl.update);
 router.delete('/boards/', adminAuth, BoardControl.delete);
 
