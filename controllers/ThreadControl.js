@@ -272,7 +272,7 @@ const ThreadControl = {
                 in: 'path',
                 description: 'ID do board',
                 required: true,
-                type: 'integer'
+                type: 'string'
             }
             #swagger.responses[200] = {
                 description: 'Lista das threads do board.'

@@ -16,10 +16,10 @@ const uploadMiddleware = upload.single('image');
 
 const uploadFile = (req, res, next) => {
     if (!req.file) {
-        return res.status(400).send("No file uploaded");
+        return next()
     }
-
     const blob = bucket.file(req.file.originalname);
+    
     const blobStream = blob.createWriteStream({
         metadata: {
             contentType: req.file.mimetype,

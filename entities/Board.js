@@ -16,7 +16,11 @@ const Board = sequelize.define('board', {
     mensagem: {
         type: DataTypes.TEXT,
         allowNull: true
-    }
+    },
+    image:{
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
 })
 
 
