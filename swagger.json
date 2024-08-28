@@ -5,6 +5,7 @@
     "description": "Projeto para a disciplina de WEB 3",
     "version": "1.0.0"
   },
+  "host": "23.96.123.184:3000",
   "basePath": "/",
   "schemes": [
     "http"
@@ -186,18 +187,6 @@
             "name": "x-forwarded-for",
             "in": "header",
             "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "mensagem": {
-                  "example": "any"
-                }
-              }
-            }
           }
         ],
         "responses": {
@@ -723,6 +712,21 @@
             "name": "x-forwarded-for",
             "in": "header",
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "titulo": {
+                  "example": "any"
+                },
+                "mensagem": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
