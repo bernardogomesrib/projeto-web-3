@@ -3,6 +3,7 @@ const Answer = require("../entities/Answer");
 const AnswerControl = {
     async getAll(req, res) {
         // #swagger.tags = ['Answer']
+        // #swagger.security = [{ "bearerAuth": [] }]
         try {
             res.json(await Answer.findAll())
         } catch (error) {
@@ -14,6 +15,7 @@ const AnswerControl = {
 
     async getById(req, res) {
         // #swagger.tags = ['Answer']
+        // #swagger.security = [{ "bearerAuth": [] }]
         const { id } = req.params;
         try {
             return res.json(await Answer.findByPk(id));
@@ -25,6 +27,7 @@ const AnswerControl = {
     async save(req, res) {
         /* #swagger.tags = ['Answer']
             #swagger.consumes = ['multipart/form-data']
+            #swagger.security = [{ "bearerAuth": [] }]
             #swagger.parameters['id'] = { description: 'ID da thread', required: true }
             #swagger.parameters['image'] ={
                 in: 'formData',
@@ -64,8 +67,8 @@ const AnswerControl = {
 
     async update(req, res) {
         // #swagger.tags = ['Answer']
-        /* #swagger.tags = ['Answer']
-            #swagger.consumes = ['multipart/form-data']
+        // #swagger.security = [{ "bearerAuth": [] }]
+        /* #swagger.consumes = ['multipart/form-data']
             #swagger.parameters['image'] ={
                 in: 'formData',
                 type: 'file',
@@ -118,6 +121,7 @@ const AnswerControl = {
 
     async delete(req, res) {
         // #swagger.tags = ['Answer']
+        // #swagger.security = [{ "bearerAuth": [] }]
         const { id } = req.body;
 
         const answer = await Answer.findByPk(id);
