@@ -3,7 +3,6 @@ const Answer = require("../entities/Answer");
 const AnswerControl = {
     async getAll(req, res) {
         // #swagger.tags = ['Answer']
-        // #swagger.security = [{ "bearerAuth": [] }]
         try {
             res.json(await Answer.findAll())
         } catch (error) {
@@ -15,7 +14,6 @@ const AnswerControl = {
 
     async getById(req, res) {
         // #swagger.tags = ['Answer']
-        // #swagger.security = [{ "bearerAuth": [] }]
         const { id } = req.params;
         try {
             return res.json(await Answer.findByPk(id));
@@ -27,7 +25,6 @@ const AnswerControl = {
     async save(req, res) {
         /* #swagger.tags = ['Answer']
             #swagger.consumes = ['multipart/form-data']
-            #swagger.security = [{ "bearerAuth": [] }]
             #swagger.parameters['id'] = { description: 'ID da thread', required: true }
             #swagger.parameters['image'] ={
                 in: 'formData',
@@ -43,7 +40,7 @@ const AnswerControl = {
             }  
         */
         const { threadId } = req.params;
-        const userId = req.user.id;
+        const user = req.user
         const { mensagem } = req.body;
         const arquivo = req.file ? req.file.firebaseUrl : null;
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -53,8 +50,10 @@ const AnswerControl = {
                 arquivo,
                 ip,
                 threadId: threadId,
-                userId: userId
             })
+            if (user) {
+                answer.userId = user.id;
+            }
             return res.json(answer);
         } catch (error) {
             res.status(500).json({
@@ -67,7 +66,6 @@ const AnswerControl = {
 
     async update(req, res) {
         // #swagger.tags = ['Answer']
-        // #swagger.security = [{ "bearerAuth": [] }]
         /* #swagger.consumes = ['multipart/form-data']
             #swagger.parameters['image'] ={
                 in: 'formData',
