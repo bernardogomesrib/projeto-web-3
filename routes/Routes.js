@@ -12,9 +12,9 @@ const { uploadMiddleware, uploadFile } = require('../middlewares/upload');
 
 router.get('/respostas/', AnswerControl.getAll);
 router.get('/respostas/:id', AnswerControl.getById);
-router.post('/:threadId/respostas/', userAuth, uploadMiddleware, uploadFile, AnswerControl.save);
-router.patch('/respostas/:id', userAuth, uploadMiddleware, uploadFile, AnswerControl.update);
-router.delete('/respostas/', userAuth, AnswerControl.delete);
+router.post('/:threadId/respostas/', uploadMiddleware, uploadFile, AnswerControl.save);
+router.patch('/respostas/:id', uploadMiddleware, uploadFile, AnswerControl.update);
+router.delete('/respostas/', AnswerControl.delete);
 
 router.get('/boards/', BoardControl.getAll);
 router.get('/boards/popular', BoardControl.getPopularBoards);
