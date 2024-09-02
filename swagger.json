@@ -5,7 +5,6 @@
     "description": "Projeto para a disciplina de WEB 3",
     "version": "1.0.0"
   },
-  "host": "23.96.123.184:3000",
   "basePath": "/",
   "schemes": [
     "http"
@@ -60,7 +59,12 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/respostas/{id}": {
@@ -146,7 +150,7 @@
         }
       }
     },
-    "/{threadId}/respostas/": {
+    "/boards/{boardId}/threads/{threadId}/respostas": {
       "post": {
         "tags": [
           "Answer"
@@ -157,17 +161,18 @@
         ],
         "parameters": [
           {
+            "name": "boardId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID da board"
+          },
+          {
             "name": "threadId",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "description": "ID da thread",
-            "required": true,
-            "in": "query",
-            "type": "string"
+            "type": "string",
+            "description": "ID da thread"
           },
           {
             "name": "image",
@@ -187,11 +192,26 @@
             "name": "x-forwarded-for",
             "in": "header",
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "mensagem": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
+          "201": {
+            "description": "Created"
+          },
+          "404": {
+            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
@@ -250,6 +270,24 @@
             "type": "file",
             "required": false,
             "description": "Imagem do board"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "mensagem": {
+                  "example": "any"
+                },
+                "nome": {
+                  "example": "any"
+                },
+                "id": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -535,6 +573,21 @@
             "name": "x-forwarded-for",
             "in": "header",
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "titulo": {
+                  "example": "any"
+                },
+                "mensagem": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -610,6 +663,39 @@
         }
       }
     },
+    "/boards/{boardId}/threads/{threadId}/content": {
+      "get": {
+        "tags": [
+          "Thread"
+        ],
+        "description": "Uma thread contendo suas respostas",
+        "parameters": [
+          {
+            "name": "boardId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "threadId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/{board}/threads/anonymous": {
       "post": {
         "tags": [
@@ -652,6 +738,21 @@
             "name": "x-forwarded-for",
             "in": "header",
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "titulo": {
+                  "example": "any"
+                },
+                "mensagem": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {

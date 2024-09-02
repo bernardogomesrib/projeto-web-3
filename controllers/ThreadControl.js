@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const Clicks = require("../entities/Clicks");
 const Thread = require("../entities/Thread");
 const Board = require("../entities/Board");
+const Answer = require("../entities/Answer");
 
 const ThreadControl = {
     async getAll(req, res) {
@@ -331,6 +332,31 @@ const ThreadControl = {
             });
         }
     },
+
+    async getThreadContent(req, res) {
+        /*  #swagger.tags = ['Thread']
+            #swagger.description = 'Uma thread contendo suas respostas'
+        */
+        const { boardId, threadId } = req.params;
+        try {
+            const threadDetails = await Thread.findOne({
+                where: { id: threadId, boardId: boardId },
+                include: [{
+                    model: Answer,
+                    as: 'answers'
+                }]
+            });
+
+            if (!threadDetails) {
+                return res.status(404).json({ message: 'Thread não encontrado' });
+            }
+
+            res.json(threadDetails);
+        } catch (error) {
+            res.status(500).json({ error: `Aconteceu um erro: ${error}` });
+        }
+    },
+
 };
 
 module.exports = ThreadControl;
