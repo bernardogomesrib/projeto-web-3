@@ -29,7 +29,7 @@ const Thread = sequelize.define('thread',{
     },
     userName:{
         type: DataTypes.STRING(255),
-        allowNull: true
+        allowNull: true,
     },
 })
 module.exports = Thread;

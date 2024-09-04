@@ -62,7 +62,7 @@
         },
         "security": [
           {
-            "bearerAuth": []
+            "Bearer": []
           }
         ]
       }
@@ -150,7 +150,81 @@
         }
       }
     },
-    "/boards/{boardId}/threads/{threadId}/respostas": {
+    "/{boardId}/{threadId}/respostas": {
+      "post": {
+        "tags": [
+          "Answer"
+        ],
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "boardId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID da board"
+          },
+          {
+            "name": "threadId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID da thread"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": false,
+            "description": "Arquivo de imagem"
+          },
+          {
+            "name": "mensagem",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "Resposta de uma thread"
+          },
+          {
+            "name": "x-forwarded-for",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "mensagem": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/{boardId}/{threadId}/respostas/anonymous": {
       "post": {
         "tags": [
           "Answer"
@@ -638,7 +712,7 @@
         }
       }
     },
-    "/boards/{boardId}/threads": {
+    "/{boardId}/threads": {
       "get": {
         "tags": [
           "Thread"
@@ -663,7 +737,7 @@
         }
       }
     },
-    "/boards/{boardId}/threads/{threadId}/content": {
+    "/{boardId}/{threadId}/content": {
       "get": {
         "tags": [
           "Thread"
@@ -843,7 +917,12 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/users/": {
