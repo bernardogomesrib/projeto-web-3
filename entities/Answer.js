@@ -17,8 +17,11 @@ const Answer = sequelize.define('answer',{
     ip:{
         type: DataTypes.STRING(135),
         allowNull: false
+    },
+    userName: {
+        type: DataTypes.STRING(135),
+        allowNull: true,
     }
-    
 })
 
 module.exports = Answer;

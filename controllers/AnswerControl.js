@@ -26,6 +26,58 @@ const AnswerControl = {
 
     async save(req, res) {
         /* #swagger.tags = ['Answer']
+            #swagger.security = [{ "Bearer": [] }]
+            #swagger.consumes = ['multipart/form-data']
+            #swagger.parameters['boardId'] = { description: 'ID da board', required: true }
+            #swagger.parameters['threadId'] = { description: 'ID da thread', required: true }
+            #swagger.parameters['image'] ={
+                in: 'formData',
+                type: 'file',
+                required: false,
+                description: 'Arquivo de imagem'
+            }
+           #swagger.parameters['mensagem'] = {
+                in: 'formData',
+                type: 'string',
+                required: false,
+                description: 'Resposta de uma thread'
+            }  
+        */
+        const { boardId, threadId } = req.params;
+        const { mensagem } = req.body;
+        const user = req.user;
+        const arquivo = req.file ? req.file.firebaseUrl : null;
+        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        try {
+            const thread = await Thread.findOne({ where: { id: threadId, boardId: boardId } });
+            if (!thread) {
+                return res.status(404).json({ message: 'ERRO: Thread não encontrada' });
+            }
+
+            const userId = req.user ? req.user.id : null;
+
+            const answer = await Answer.create({
+                mensagem,
+                arquivo,
+                ip,
+                threadId: threadId,
+                userId:userId,
+                userName: user.nome
+            })
+
+            console.log(user)
+            return res.status(201).json(answer);
+        } catch (error) {
+            res.status(500).json({
+                error: 'Erro ao salvar resposta - ' + error.message,
+                name: error.name,
+                stack: error.stack
+            })
+        }
+    },
+
+    async saveAnonymous(req, res) {
+        /* #swagger.tags = ['Answer']
             #swagger.consumes = ['multipart/form-data']
             #swagger.parameters['boardId'] = { description: 'ID da board', required: true }
             #swagger.parameters['threadId'] = { description: 'ID da thread', required: true }
@@ -59,7 +111,8 @@ const AnswerControl = {
                 arquivo,
                 ip,
                 threadId: threadId,
-                userId:userId
+                userId:userId,
+                userName: "Anônimo"
             })
 
             return res.status(201).json(answer);
@@ -127,7 +180,7 @@ const AnswerControl = {
 
     async delete(req, res) {
         // #swagger.tags = ['Answer']
-        // #swagger.security = [{ "bearerAuth": [] }]
+        // #swagger.security = [{ "Bearer": [] }]
         const { id } = req.body;
 
         const answer = await Answer.findByPk(id);
