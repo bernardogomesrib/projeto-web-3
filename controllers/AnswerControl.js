@@ -1,6 +1,5 @@
 const Answer = require("../entities/Answer");
 const Thread = require("../entities/Thread");
-const { saveAnonymous } = require("./ThreadControl");
 
 
 const AnswerControl = {
