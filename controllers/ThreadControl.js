@@ -98,6 +98,7 @@ const ThreadControl = {
 
     async save(req, res) {
         /*  #swagger.tags = ['Thread']
+            #swagger.security = [{ "Bearer": [] }]
             #swagger.consumes = ['multipart/form-data']
             #swagger.parameters['board'] = { description: 'ID do board', required: true }
             #swagger.parameters['image'] = {
@@ -141,6 +142,79 @@ const ThreadControl = {
             };
             if (user) {
                 threadData.userId = user.id;
+                threadData.userName = user.nome;
+            }
+            const ThreadInstance = await Thread.create(threadData);
+            res.json(ThreadInstance);
+        } catch (error) {
+            res.status(500).json({
+                error: "Erro ao salvar Thread - " + error.message,
+                name: error.name,
+                stack: error.stack,
+            });
+        }
+    },
+
+    async getByTitle(title) {
+        try {
+            return await Thread.findOne({
+                where: {
+                    titulo: title,
+                },
+            });
+        } catch (error) {
+            throw new Error(
+                "Erro ao buscar thread pelo titulo " + error.message
+            );
+        }
+    },
+
+    async saveAnonymous(req, res) {
+        /*  #swagger.tags = ['Thread']
+            #swagger.consumes = ['multipart/form-data']
+            #swagger.parameters['board'] = { description: 'ID do board', required: true }
+            #swagger.parameters['image'] = {
+                in: 'formData',
+                type: 'file',
+                required: false,
+                description: 'Arquivo de imagem'
+            }
+            #swagger.parameters['titulo'] = {
+                in: 'formData',
+                type: 'string',
+                required: true,
+                description: 'Título da thread'
+            }
+            #swagger.parameters['mensagem'] = {
+                in: 'formData',
+                type: 'string',
+                required: true,
+                description: 'Mensagem da thread'
+            }
+        */
+        const board = req.params.board;
+        const user = req.user;
+        const { titulo, mensagem } = req.body;
+        const arquivo = req.file ? req.file.firebaseUrl : null;
+        const ip =
+            req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        try {
+            const boardId = await Board.findByPk(board);
+            if (!boardId) {
+                return res.status(404).json({
+                    error: "Board não encontrado",
+                });
+            }
+            const threadData = {
+                titulo,
+                mensagem,
+                arquivo,
+                ip,
+                boardId: board,
+            };
+            if (user) {
+                threadData.userId = user.id;
+                threadData.userName = user.nome;
             }
             const ThreadInstance = await Thread.create(threadData);
             res.json(ThreadInstance);

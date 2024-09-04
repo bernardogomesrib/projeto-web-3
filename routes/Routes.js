@@ -29,7 +29,7 @@ router.get('/threads/:id', ThreadControl.getById);
 router.get('/threads/search/:filters', ThreadControl.searchThreads);
 router.get('/boards/:boardId/threads', ThreadControl.getThreadsByBoard);
 router.get('/boards/:boardId/threads/:threadId/content', ThreadControl.getThreadContent);
-router.post('/:board/threads/anonymous', uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.save);
+router.post('/:board/threads/anonymous', uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.saveAnonymous);
 router.post('/:board/threads', userAuth, uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.save);
 router.patch('/threads/:id', userAuth, uploadMiddleware, uploadFile, ThreadControl.updateThread);
 router.delete('/threads/', userAuth, ThreadControl.delete);
