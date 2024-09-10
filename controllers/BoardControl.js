@@ -94,8 +94,28 @@ const BoardControl = {
   },
 
   async update(req, res) {
-    // #swagger.tags = ['Board']
-    // #swagger.security = [{ "Bearer": [] }]
+    /* #swagger.tags = ['Board']
+     #swagger.security = [{ "Bearer": [] }]
+      #swagger.consumes = ['multipart/form-data']
+      #swagger.parameters['id'] = {
+          in: 'formData',
+          type: 'string',
+          required: true,
+          description: 'Id do board'
+      }
+      #swagger.parameters['nome'] = {
+          in: 'formData',
+          type: 'string',
+          required: false,
+          description: 'Nome do board'
+      }
+      #swagger.parameters['mensagem'] = {
+          in: 'formData',
+          type: 'string',
+          required: false,
+          description: 'Mensagem do board'
+      }
+     */
     const { id } = req.body;
     const { mensagem, nome } = req.body;
 
