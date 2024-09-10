@@ -26,13 +26,13 @@ router.delete('/boards/', adminAuth, BoardControl.delete);
 
 router.get('/threads/', ThreadControl.getAll);
 router.get('/threads/recent', ThreadControl.getRecentThreads);
-router.get('/threads/:id', ThreadControl.getById);
+router.get('/:boardId/threads/:id', ThreadControl.getById);
 router.get('/threads/search/:filters', ThreadControl.searchThreads);
 router.get('/:boardId/threads', ThreadControl.getThreadsByBoard);
 router.post('/:boardId/threads/anonymous', uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.saveAnonymous);
 router.post('/:boardId/threads', userAuth, uploadMiddleware, uploadFile, handlerError('threads'), handlerValidate, ThreadControl.save);
 router.patch('/threads/:id', userAuth, uploadMiddleware, uploadFile, ThreadControl.updateThread);
-router.delete('/threads/', userAuth, ThreadControl.delete);
+router.delete('/threads/:id', userAuth, ThreadControl.delete);
 
 router.get('/users/', adminAuth, UserControl.getAll);
 router.get('/users/:id', userAuth, UserControl.getById);

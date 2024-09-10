@@ -3,6 +3,7 @@ const Clicks = require("../entities/Clicks");
 const Thread = require("../entities/Thread");
 const Answer = require("../entities/Answer")
 const redis = require('redis');
+const Board = require("../entities/Board");
 const { extractResolution } = require('../utils/fileUtils');
 
 const redisHost = process.env.REDIS_HOST
@@ -67,6 +68,7 @@ const ThreadControl = {
 
     async searchThreads(req, res) {
         // #swagger.tags = ['Thread']
+        // #swagger.description = 'Retorna todas as threads filtrando pelo titulo ou mensagem'
         try {
             const { filters } = req.params;
             const threads = await Thread.findAll({
@@ -97,11 +99,12 @@ const ThreadControl = {
 
     async getById(req, res) {
         // #swagger.tags = ['Thread']
-        const { id } = req.params;
+        const { boardId, id } = req.params;
+        const boardExiste = await Board.findByPk(boardId);
         const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
         try {
             const thread = await Thread.findOne({
-                where: { id },
+                where: { id, boardId },
                 include: [
                     {
                         model: Answer,
@@ -109,6 +112,10 @@ const ThreadControl = {
                     }
                 ],
             });
+
+            if(!boardExiste){
+                return res.status(404).json({ msg: "Board não existe!" });
+            }
 
             if (!thread) {
                 return res.status(404).json({ msg: "Thread não existe!" });
@@ -195,20 +202,6 @@ const ThreadControl = {
         }
     },
 
-    async getByTitle(title) {
-        try {
-            return await Thread.findOne({
-                where: {
-                    titulo: title,
-                },
-            });
-        } catch (error) {
-            throw new Error(
-                "Erro ao buscar thread pelo titulo " + error.message
-            );
-        }
-    },
-
     async saveAnonymous(req, res) {
         /*  #swagger.tags = ['Thread']
             #swagger.consumes = ['multipart/form-data']
@@ -256,20 +249,6 @@ const ThreadControl = {
             res.json(ThreadInstance);
         } catch (error) {
             res.status(500).json({ error: 'Erro ao salvar Thread anonimamente - ' + error.message });
-        }
-    },
-
-    async getByTitle(title) {
-        try {
-            return await Thread.findOne({
-                where: {
-                    titulo: title,
-                },
-            });
-        } catch (error) {
-            throw new Error(
-                "Erro ao buscar thread pelo titulo " + error.message
-            );
         }
     },
 
@@ -355,7 +334,7 @@ const ThreadControl = {
     async delete(req, res) {
         // #swagger.tags = ['Thread']
         // #swagger.security = [{ "Bearer": [] }]
-        const { id } = req.body;
+        const { id } = req.params;
 
         try {
             const ThreadInstance = await Thread.findByPk(id);
@@ -397,19 +376,50 @@ const ThreadControl = {
                 description: 'Erro ao buscar threads do board.'
             }
         */
-        const boardId = req.params.boardId;
-        try {
-            const threads = await Thread.findAll({
-                where: { boardId: boardId },
-            });
-            res.status(200).json(threads);
-        } catch (error) {
-            res.status(500).json({
-                message: "Erro ao buscar threads do board",
-                error,
-            });
-        }
+            const boardId = req.params.boardId;
+            const pageNumber = Number(req.query.page) || 1;
+            const sizeNumber = Number(req.query.size) || 20;
+        
+            try {
+                // Busca com paginação
+                const threads = await Thread.findAll({
+                    where: { boardId: boardId },
+                    limit: sizeNumber,
+                    offset: (pageNumber - 1) * sizeNumber,
+                });
+        
+                // Contagem total das threads para o board específico
+                const totalThreads = await Thread.count({
+                    where: { boardId: boardId },
+                });
+        
+                const totalPages = Math.ceil(totalThreads / sizeNumber);
+        
+                const nextPage =
+                    pageNumber < totalPages
+                        ? `${process.env.CLIENT_URL}/threads/board/${boardId}?page=${pageNumber + 1}&size=${sizeNumber}`
+                        : null;
+                const previousPage =
+                    pageNumber > 1
+                        ? `${process.env.CLIENT_URL}/threads/board/${boardId}?page=${pageNumber - 1}&size=${sizeNumber}`
+                        : null;
+        
+                res.json({
+                    data: threads,
+                    currentPage: pageNumber,
+                    totalPages: totalPages,
+                    next: nextPage,
+                    previous: previousPage,
+                });
+            } catch (error) {
+                res.status(500).json({
+                    message: "Erro ao buscar threads do board",
+                    error: error.message,
+                    stack: error.stack,
+                });
+            }
     },
+
     async getRecentThreads(_, res) {
         /*  #swagger.tags = ['Thread']
             #swagger.description = 'Retorna uma lista das 10 threads mais recentes, ordenadas pela data de criação em ordem decrescente.'
