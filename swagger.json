@@ -544,42 +544,6 @@
             "description": "Internal Server Error"
           }
         }
-      },
-      "delete": {
-        "tags": [
-          "Thread"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "security": [
-          {
-            "Bearer": []
-          }
-        ]
       }
     },
     "/threads/recent": {
@@ -601,13 +565,19 @@
         }
       }
     },
-    "/threads/{id}": {
+    "/{boardId}/threads/{id}": {
       "get": {
         "tags": [
           "Thread"
         ],
         "description": "",
         "parameters": [
+          {
+            "name": "boardId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "id",
             "in": "path",
@@ -631,87 +601,6 @@
             "description": "Internal Server Error"
           }
         }
-      },
-      "patch": {
-        "tags": [
-          "Thread"
-        ],
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "description": "ID da thread"
-          },
-          {
-            "name": "image",
-            "in": "formData",
-            "type": "file",
-            "required": false,
-            "description": "Arquivo de imagem"
-          },
-          {
-            "name": "titulo",
-            "in": "formData",
-            "type": "string",
-            "required": false,
-            "description": "Título da thread"
-          },
-          {
-            "name": "mensagem",
-            "in": "formData",
-            "type": "string",
-            "required": false,
-            "description": "Mensagem da thread"
-          },
-          {
-            "name": "x-forwarded-for",
-            "in": "header",
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "titulo": {
-                  "example": "any"
-                },
-                "mensagem": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "security": [
-          {
-            "Bearer": []
-          }
-        ]
       }
     },
     "/threads/search/{filters}": {
@@ -719,7 +608,7 @@
         "tags": [
           "Thread"
         ],
-        "description": "",
+        "description": "Retorna todas as threads filtrando pelo titulo ou mensagem",
         "parameters": [
           {
             "name": "filters",
@@ -751,6 +640,16 @@
             "required": true,
             "type": "string",
             "description": "ID do board"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
@@ -906,6 +805,119 @@
             "description": "Internal Server Error"
           }
         }
+      }
+    },
+    "/threads/{id}": {
+      "patch": {
+        "tags": [
+          "Thread"
+        ],
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID da thread"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": false,
+            "description": "Arquivo de imagem"
+          },
+          {
+            "name": "titulo",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "Título da thread"
+          },
+          {
+            "name": "mensagem",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "Mensagem da thread"
+          },
+          {
+            "name": "x-forwarded-for",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "titulo": {
+                  "example": "any"
+                },
+                "mensagem": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Thread"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/users/": {
