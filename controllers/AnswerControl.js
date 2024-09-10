@@ -1,6 +1,6 @@
 const Answer = require("../entities/Answer");
 const Thread = require("../entities/Thread");
-
+const { extractResolution } = require('../utils/fileUtils');
 
 const AnswerControl = {
     async getAll(req, res) {
@@ -45,34 +45,30 @@ const AnswerControl = {
         */
         const { boardId, threadId } = req.params;
         const { mensagem } = req.body;
-        const user = req.user;
         const arquivo = req.file ? req.file.firebaseUrl : null;
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const user = req.user;
+
         try {
-            const thread = await Thread.findOne({ where: { id: threadId, boardId: boardId } });
-            if (!thread) {
-                return res.status(404).json({ message: 'ERRO: Thread não encontrada' });
+            let resolution = null;
+            if (req.file) {
+                resolution = await extractResolution(req.file);
             }
 
-            const userId = req.user ? req.user.id : null;
-
-            const answer = await Answer.create({
+            const answerData = {
                 mensagem,
                 arquivo,
+                resolution,
                 ip,
                 threadId: threadId,
-                userId:userId,
-                userName: user.nome
-            })
+                userId: user ? user.id : null,
+                userName: user ? user.nome : 'Anônimo'
+            };
 
-            console.log(user)
-            return res.status(201).json(answer);
+            const answerInstance = await Answer.create(answerData);
+            res.status(201).json(answerInstance);
         } catch (error) {
-            res.status(500).json({
-                error: 'Erro ao salvar resposta - ' + error.message,
-                name: error.name,
-                stack: error.stack
-            })
+            res.status(500).json({ error: 'Erro ao salvar resposta - ' + error.message });
         }
     },
 
@@ -98,30 +94,26 @@ const AnswerControl = {
         const { mensagem } = req.body;
         const arquivo = req.file ? req.file.firebaseUrl : null;
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
         try {
-            const thread = await Thread.findOne({ where: { id: threadId, boardId: boardId } });
-            if (!thread) {
-                return res.status(404).json({ message: 'ERRO: Thread não encontrada' });
+            let resolution = null;
+            if (req.file) {
+                resolution = await extractResolution(req.file);
             }
 
-            const userId = req.user ? req.user.id : null;
-
-            const answer = await Answer.create({
+            const answerData = {
                 mensagem,
                 arquivo,
+                resolution,
                 ip,
                 threadId: threadId,
-                userId:userId,
-                userName: "Anônimo"
-            })
+                userName: 'Anônimo'
+            };
 
-            return res.status(201).json(answer);
+            const answerInstance = await Answer.create(answerData);
+            res.status(201).json(answerInstance);
         } catch (error) {
-            res.status(500).json({
-                error: 'Erro ao salvar resposta - ' + error.message,
-                name: error.name,
-                stack: error.stack
-            })
+            res.status(500).json({ error: 'Erro ao salvar resposta anonimamente - ' + error.message });
         }
     },
 

@@ -5,7 +5,6 @@
     "description": "Projeto para a disciplina de WEB 3",
     "version": "1.0.0"
   },
-  "host": "localhost:3000",
   "basePath": "/",
   "schemes": [
     "http"
@@ -211,9 +210,6 @@
           "201": {
             "description": "Created"
           },
-          "404": {
-            "description": "Not Found"
-          },
           "500": {
             "description": "Internal Server Error"
           }
@@ -284,9 +280,6 @@
         "responses": {
           "201": {
             "description": "Created"
-          },
-          "404": {
-            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
@@ -371,6 +364,9 @@
           },
           "400": {
             "description": "Board já existe."
+          },
+          "404": {
+            "description": "Not Found"
           },
           "500": {
             "description": "Erro ao salvar board."
@@ -830,9 +826,6 @@
           "400": {
             "description": "Bad Request"
           },
-          "404": {
-            "description": "Not Found"
-          },
           "500": {
             "description": "Internal Server Error"
           }
@@ -908,9 +901,6 @@
           },
           "400": {
             "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
