@@ -5,6 +5,7 @@
     "description": "Projeto para a disciplina de WEB 3",
     "version": "1.0.0"
   },
+  "host": "localhost:3000",
   "basePath": "/",
   "schemes": [
     "http"
@@ -386,7 +387,31 @@
           "Board"
         ],
         "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
+          {
+            "name": "id",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Id do board"
+          },
+          {
+            "name": "nome",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "Nome do board"
+          },
+          {
+            "name": "mensagem",
+            "in": "formData",
+            "type": "string",
+            "required": false,
+            "description": "Mensagem do board"
+          },
           {
             "name": "body",
             "in": "body",
@@ -553,7 +578,12 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/threads/recent": {
@@ -735,132 +765,21 @@
             "description": "Erro ao buscar threads do board."
           }
         }
-      }
-    },
-    "/{boardId}/{threadId}/content": {
-      "get": {
+      },
+      "post": {
         "tags": [
           "Thread"
         ],
-        "description": "Uma thread contendo suas respostas",
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
             "name": "boardId",
             "in": "path",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "threadId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/{board}/threads/anonymous": {
-      "post": {
-        "tags": [
-          "Thread"
-        ],
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "board",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "description": "ID do board"
-          },
-          {
-            "name": "image",
-            "in": "formData",
-            "type": "file",
-            "required": false,
-            "description": "Arquivo de imagem"
-          },
-          {
-            "name": "titulo",
-            "in": "formData",
-            "type": "string",
-            "required": true,
-            "description": "Título da thread"
-          },
-          {
-            "name": "mensagem",
-            "in": "formData",
-            "type": "string",
-            "required": true,
-            "description": "Mensagem da thread"
-          },
-          {
-            "name": "x-forwarded-for",
-            "in": "header",
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "titulo": {
-                  "example": "any"
-                },
-                "mensagem": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/{board}/threads": {
-      "post": {
-        "tags": [
-          "Thread"
-        ],
-        "description": "",
-        "consumes": [
-          "multipart/form-data"
-        ],
-        "parameters": [
-          {
-            "name": "board",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "description": "ID do board"
           },
           {
             "name": "image",
@@ -923,6 +842,80 @@
             "Bearer": []
           }
         ]
+      }
+    },
+    "/{boardId}/threads/anonymous": {
+      "post": {
+        "tags": [
+          "Thread"
+        ],
+        "description": "",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "name": "boardId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "type": "file",
+            "required": false,
+            "description": "Arquivo de imagem"
+          },
+          {
+            "name": "titulo",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Título da thread"
+          },
+          {
+            "name": "mensagem",
+            "in": "formData",
+            "type": "string",
+            "required": true,
+            "description": "Mensagem da thread"
+          },
+          {
+            "name": "x-forwarded-for",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "titulo": {
+                  "example": "any"
+                },
+                "mensagem": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/users/": {

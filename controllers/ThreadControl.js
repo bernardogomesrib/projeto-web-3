@@ -2,21 +2,59 @@ const { Op } = require("sequelize");
 const Clicks = require("../entities/Clicks");
 const Thread = require("../entities/Thread");
 const Board = require("../entities/Board");
-const Answer = require("../entities/Answer");
+const redis = require('redis');
+
+const redisHost = process.env.REDIS_HOST
+const redisPort = process.env.REDIS_PORT
+
+const client = redis.createClient({
+    url: `redis://${redisHost}:${redisPort}`
+});
+
+client.on('error', (err) => {
+    console.error('Erro ao conectar ao Redis:', err);
+});
+
+(async () => {
+    await client.connect();
+})();
+
+const CACHE_KEY = 'recent_threads';
 
 const ThreadControl = {
+
     async getAll(req, res) {
         // #swagger.tags = ['Thread']
-        const { page, size } = req.query;
-        const pageNumber = Math.max(1, Number(page) || 1);
-        const sizeNumber = 20;
+        
+        const pageNumber = Number(req.query.page) || 1;
+        const sizeNumber = Number(req.query.size) || 20;
+
         try {
-            res.json(
-                await Thread.findAll({
-                    limit: sizeNumber,
-                    offset: (pageNumber - 1) * sizeNumber,
-                })
-            );
+            const threads = await Thread.findAll({
+                limit: sizeNumber,
+                offset: (pageNumber - 1) * sizeNumber,
+            });
+
+            const totalThreads = await Thread.count();
+
+            const totalPages = Math.ceil(totalThreads / sizeNumber);
+
+            const nextPage =
+                pageNumber < totalPages
+                    ? `${process.env.CLIENT_URL}/threads?page=${pageNumber + 1}&size=${sizeNumber}`
+                    : null;
+            const previousPage =
+                pageNumber > 1
+                    ? `${process.env.CLIENT_URL}/threads?page=${pageNumber - 1}&size=${sizeNumber}`
+                    : null;
+
+            res.json({
+                data: threads, 
+                currentPage: pageNumber,
+                totalPages: totalPages,
+                next: nextPage,
+                previous: previousPage,
+            });
         } catch (error) {
             res.status(500).json({
                 error: "Erro ao buscar os Threads - " + error.message,
@@ -59,48 +97,54 @@ const ThreadControl = {
     async getById(req, res) {
         // #swagger.tags = ['Thread']
         const { id } = req.params;
-        const ip =
-            req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
         try {
-            const thread = await Thread.findByPk(id);
+            const thread = await Thread.findOne({
+                where: { id },
+                include: [
+                    {
+                        model: Answer, // include answers related to the thread
+                        as: 'answers',
+                    }
+                ],
+            });
+    
             if (!thread) {
-                res.status(404).json({ msg: "Thread não existe!" });
-            } else {
-                const exists = await Clicks.findOne({
-                    where: {
-                        threadId: id,
-                        ip: ip,
-                    },
-                });
-                if (!exists) {
-                    await Clicks.create({ threadId: id, ip: ip });
-                    await Thread.update(
-                        {
-                            clicks: thread.clicks + 1,
-                        },
-                        {
-                            where: {
-                                id,
-                            },
-                        }
-                    );
-                    thread.clicks += 1;
-                    return res.json(thread);
-                }
-                return res.json(thread);
+                return res.status(404).json({ msg: "Thread não existe!" });
             }
+    
+            const exists = await Clicks.findOne({
+                where: {
+                    threadId: id,
+                    ip: ip,
+                },
+            });
+    
+            if (!exists) {
+                await Clicks.create({ threadId: id, ip: ip });
+                await Thread.update(
+                    {
+                        clicks: thread.clicks + 1,
+                    },
+                    {
+                        where: { id },
+                    }
+                );
+                thread.clicks += 1; // increment the clicks on the thread
+            }
+    
+            res.json(thread);
         } catch (error) {
             res.status(500).json({
                 error: "Erro ao procurar Thread - " + error.message,
             });
         }
     },
-
+    
     async save(req, res) {
         /*  #swagger.tags = ['Thread']
             #swagger.security = [{ "Bearer": [] }]
             #swagger.consumes = ['multipart/form-data']
-            #swagger.parameters['board'] = { description: 'ID do board', required: true }
             #swagger.parameters['image'] = {
                 in: 'formData',
                 type: 'file',
@@ -120,7 +164,7 @@ const ThreadControl = {
                 description: 'Mensagem da thread'
             }
         */
-        const board = req.params.board;
+        const board = req.params.boardId;
         const user = req.user;
         const { titulo, mensagem } = req.body;
         const arquivo = req.file ? req.file.firebaseUrl : null;
@@ -172,7 +216,6 @@ const ThreadControl = {
     async saveAnonymous(req, res) {
         /*  #swagger.tags = ['Thread']
             #swagger.consumes = ['multipart/form-data']
-            #swagger.parameters['board'] = { description: 'ID do board', required: true }
             #swagger.parameters['image'] = {
                 in: 'formData',
                 type: 'file',
@@ -192,7 +235,7 @@ const ThreadControl = {
                 description: 'Mensagem da thread'
             }
         */
-        const board = req.params.board;
+        const board = req.params.boardId;
         const user = req.user;
         const { titulo, mensagem } = req.body;
         const arquivo = req.file ? req.file.firebaseUrl : null;
@@ -322,15 +365,24 @@ const ThreadControl = {
 
     async delete(req, res) {
         // #swagger.tags = ['Thread']
+        // #swagger.security = [{ "Bearer": [] }]
         const { id } = req.body;
 
-        const ThreadInstance = await Thread.findByPk(id);
         try {
+            const ThreadInstance = await Thread.findByPk(id);
             if (!ThreadInstance) {
                 return res.status(404).json({ error: "Não existe a Thread" });
             }
+    
+            // Deletar a thread do banco de dados
             await ThreadInstance.destroy();
-            res.status(201).json({ message: "Thread deletada" });
+    
+            // Remover a chave do cache no Redis
+            const CACHE_KEY = 'recent_threads'; // A chave que usamos para armazenar threads recentes
+            await client.del(CACHE_KEY);
+    
+            // Retorna uma resposta de sucesso
+            res.status(201).json({ message: "Thread deletada e cache atualizado" });
         } catch (error) {
             res.status(500).json({
                 error: "Erro ao deletar - " + error.message,
@@ -369,7 +421,6 @@ const ThreadControl = {
             });
         }
     },
-
     async getRecentThreads(_, res) {
         /*  #swagger.tags = ['Thread']
             #swagger.description = 'Retorna uma lista das 10 threads mais recentes, ordenadas pela data de criação em ordem decrescente.'
@@ -384,21 +435,27 @@ const ThreadControl = {
             }
         */
         try {
-            console.log('Buscando threads mais recentes...');
-            const recentThreads = await Thread.findAll({
-                order: [["createdAt", "DESC"]],
-                limit: 10,
-            });
+            const cachedData = await client.get(CACHE_KEY);
 
-            console.log('Número de threads encontradas:', recentThreads.length);
+            if (cachedData) {
+                const parsedData = JSON.parse(cachedData);
 
-            if (recentThreads.length === 0) {
-                return res
-                    .status(404)
-                    .json({ msg: "Nenhuma thread encontrada!" });
+                return res.status(200).json(parsedData);
+            } else {
+                // Se não houver cache, faz a busca no banco de dados
+                const recentThreads = await Thread.findAll({
+                    order: [["createdAt", "DESC"]],
+                    limit: 10,
+                });
+
+                if (recentThreads.length === 0) {
+                    return res.status(404).json({ msg: "Nenhuma thread encontrada!" });
+                }
+
+                await client.setEx(CACHE_KEY, 60, JSON.stringify(recentThreads));
+
+                res.status(200).json(recentThreads);
             }
-
-            res.status(200).json(recentThreads);
         } catch (error) {
             res.status(500).json({
                 message: "Erro ao buscar threads mais recentes",
@@ -406,31 +463,6 @@ const ThreadControl = {
             });
         }
     },
-
-    async getThreadContent(req, res) {
-        /*  #swagger.tags = ['Thread']
-            #swagger.description = 'Uma thread contendo suas respostas'
-        */
-        const { boardId, threadId } = req.params;
-        try {
-            const threadDetails = await Thread.findOne({
-                where: { id: threadId, boardId: boardId },
-                include: [{
-                    model: Answer,
-                    as: 'answers'
-                }]
-            });
-
-            if (!threadDetails) {
-                return res.status(404).json({ message: 'Thread não encontrado' });
-            }
-
-            res.json(threadDetails);
-        } catch (error) {
-            res.status(500).json({ error: `Aconteceu um erro: ${error}` });
-        }
-    },
-
 };
 
 module.exports = ThreadControl;
