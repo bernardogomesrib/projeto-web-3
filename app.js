@@ -6,6 +6,7 @@ const swaggerDocument = require("./swagger.json");
 const router = require("./routes/Routes");
 const cors = require("cors");
 const app = express();
+const path = require('path');
 
 app.use(
   cors({
@@ -16,6 +17,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(router);
 
