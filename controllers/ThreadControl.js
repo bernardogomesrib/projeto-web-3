@@ -1,8 +1,8 @@
 const { Op } = require("sequelize");
 const Clicks = require("../entities/Clicks");
 const Thread = require("../entities/Thread");
-const Board = require("../entities/Board");
 const redis = require('redis');
+const { extractResolution } = require('../utils/fileUtils');
 
 const redisHost = process.env.REDIS_HOST
 const redisPort = process.env.REDIS_PORT
@@ -25,7 +25,7 @@ const ThreadControl = {
 
     async getAll(req, res) {
         // #swagger.tags = ['Thread']
-        
+
         const pageNumber = Number(req.query.page) || 1;
         const sizeNumber = Number(req.query.size) || 20;
 
@@ -49,7 +49,7 @@ const ThreadControl = {
                     : null;
 
             res.json({
-                data: threads, 
+                data: threads,
                 currentPage: pageNumber,
                 totalPages: totalPages,
                 next: nextPage,
@@ -103,23 +103,23 @@ const ThreadControl = {
                 where: { id },
                 include: [
                     {
-                        model: Answer, // include answers related to the thread
+                        model: Answer,
                         as: 'answers',
                     }
                 ],
             });
-    
+
             if (!thread) {
                 return res.status(404).json({ msg: "Thread não existe!" });
             }
-    
+
             const exists = await Clicks.findOne({
                 where: {
                     threadId: id,
                     ip: ip,
                 },
             });
-    
+
             if (!exists) {
                 await Clicks.create({ threadId: id, ip: ip });
                 await Thread.update(
@@ -130,9 +130,9 @@ const ThreadControl = {
                         where: { id },
                     }
                 );
-                thread.clicks += 1; // increment the clicks on the thread
+                thread.clicks += 1;
             }
-    
+
             res.json(thread);
         } catch (error) {
             res.status(500).json({
@@ -140,7 +140,7 @@ const ThreadControl = {
             });
         }
     },
-    
+
     async save(req, res) {
         /*  #swagger.tags = ['Thread']
             #swagger.security = [{ "Bearer": [] }]
@@ -164,38 +164,33 @@ const ThreadControl = {
                 description: 'Mensagem da thread'
             }
         */
-        const board = req.params.boardId;
-        const user = req.user;
+        const { boardId } = req.params;
         const { titulo, mensagem } = req.body;
         const arquivo = req.file ? req.file.firebaseUrl : null;
-        const ip =
-            req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const user = req.user;
+
         try {
-            const boardId = await Board.findByPk(board);
-            if (!boardId) {
-                return res.status(404).json({
-                    error: "Board não encontrado",
-                });
+            let resolution = null;
+            if (req.file) {
+                resolution = await extractResolution(req.file);
             }
+
             const threadData = {
                 titulo,
                 mensagem,
                 arquivo,
+                resolution,
                 ip,
-                boardId: board,
+                boardId: boardId,
+                userId: user ? user.id : null,
+                userName: user ? user.nome : 'Anônimo'
             };
-            if (user) {
-                threadData.userId = user.id;
-                threadData.userName = user.nome;
-            }
+
             const ThreadInstance = await Thread.create(threadData);
             res.json(ThreadInstance);
         } catch (error) {
-            res.status(500).json({
-                error: "Erro ao salvar Thread - " + error.message,
-                name: error.name,
-                stack: error.stack,
-            });
+            res.status(500).json({ error: 'Erro ao salvar Thread - ' + error.message });
         }
     },
 
@@ -235,38 +230,31 @@ const ThreadControl = {
                 description: 'Mensagem da thread'
             }
         */
-        const board = req.params.boardId;
-        const user = req.user;
+        const { boardId } = req.params;
         const { titulo, mensagem } = req.body;
         const arquivo = req.file ? req.file.firebaseUrl : null;
-        const ip =
-            req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
         try {
-            const boardId = await Board.findByPk(board);
-            if (!boardId) {
-                return res.status(404).json({
-                    error: "Board não encontrado",
-                });
+            let resolution = null;
+            if (req.file) {
+                resolution = await extractResolution(req.file);
             }
+
             const threadData = {
                 titulo,
                 mensagem,
                 arquivo,
+                resolution,
                 ip,
-                boardId: board,
+                boardId: boardId,
+                userName: 'Anônimo'
             };
-            if (user) {
-                threadData.userId = user.id;
-                threadData.userName = user.nome;
-            }
+
             const ThreadInstance = await Thread.create(threadData);
             res.json(ThreadInstance);
         } catch (error) {
-            res.status(500).json({
-                error: "Erro ao salvar Thread - " + error.message,
-                name: error.name,
-                stack: error.stack,
-            });
+            res.status(500).json({ error: 'Erro ao salvar Thread anonimamente - ' + error.message });
         }
     },
 
@@ -373,14 +361,14 @@ const ThreadControl = {
             if (!ThreadInstance) {
                 return res.status(404).json({ error: "Não existe a Thread" });
             }
-    
+
             // Deletar a thread do banco de dados
             await ThreadInstance.destroy();
-    
+
             // Remover a chave do cache no Redis
             const CACHE_KEY = 'recent_threads'; // A chave que usamos para armazenar threads recentes
             await client.del(CACHE_KEY);
-    
+
             // Retorna uma resposta de sucesso
             res.status(201).json({ message: "Thread deletada e cache atualizado" });
         } catch (error) {

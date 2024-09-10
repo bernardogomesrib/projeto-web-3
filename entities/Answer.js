@@ -14,6 +14,10 @@ const Answer = sequelize.define('answer',{
         type: DataTypes.TEXT,
         allowNull: true
     },
+    resolution: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     ip:{
         type: DataTypes.STRING(135),
         allowNull: false
