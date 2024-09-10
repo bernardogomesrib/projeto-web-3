@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const Clicks = require("../entities/Clicks");
 const Thread = require("../entities/Thread");
+const Answer = require("../entities/Answer")
 const redis = require('redis');
 const { extractResolution } = require('../utils/fileUtils');
 
