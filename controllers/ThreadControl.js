@@ -33,9 +33,11 @@ const ThreadControl = {
 
         try {
             const threads = await Thread.findAll({
+                order: [["createdAt", "DESC"]],
                 limit: sizeNumber,
                 offset: (pageNumber - 1) * sizeNumber,
             });
+
 
             const totalThreads = await Thread.count();
 
@@ -72,6 +74,7 @@ const ThreadControl = {
         try {
             const { filters } = req.params;
             const threads = await Thread.findAll({
+                order: [["createdAt", "DESC"]],
                 where: {
                     [Op.or]: [
                         {
@@ -382,6 +385,7 @@ const ThreadControl = {
     
         try {
             const threads = await Thread.findAll({
+                order: [["createdAt", "DESC"]],
                 where: { boardId: boardId },
                 limit: sizeNumber,
                 offset: (pageNumber - 1) * sizeNumber,
@@ -417,6 +421,20 @@ const ThreadControl = {
                 error: error.message,
                 stack: error.stack,
             });
+        }
+    },
+
+    async getByTitle(title) {
+        try {
+            return await Thread.findOne({
+                where: {
+                    titulo: title,
+                },
+            });
+        } catch (error) {
+            throw new Error(
+                "Erro ao buscar thread pelo titulo " + error.message
+            );
         }
     },
 
