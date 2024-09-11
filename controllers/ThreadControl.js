@@ -376,48 +376,48 @@ const ThreadControl = {
                 description: 'Erro ao buscar threads do board.'
             }
         */
-            const boardId = req.params.boardId;
-            const pageNumber = Number(req.query.page) || 1;
-            const sizeNumber = Number(req.query.size) || 20;
-        
-            try {
-                // Busca com paginação
-                const threads = await Thread.findAll({
-                    where: { boardId: boardId },
-                    limit: sizeNumber,
-                    offset: (pageNumber - 1) * sizeNumber,
-                });
-        
-                // Contagem total das threads para o board específico
-                const totalThreads = await Thread.count({
-                    where: { boardId: boardId },
-                });
-        
-                const totalPages = Math.ceil(totalThreads / sizeNumber);
-        
-                const nextPage =
-                    pageNumber < totalPages
-                        ? `${process.env.CLIENT_URL}/threads/board/${boardId}?page=${pageNumber + 1}&size=${sizeNumber}`
-                        : null;
-                const previousPage =
-                    pageNumber > 1
-                        ? `${process.env.CLIENT_URL}/threads/board/${boardId}?page=${pageNumber - 1}&size=${sizeNumber}`
-                        : null;
-        
-                res.json({
-                    data: threads,
-                    currentPage: pageNumber,
-                    totalPages: totalPages,
-                    next: nextPage,
-                    previous: previousPage,
-                });
-            } catch (error) {
-                res.status(500).json({
-                    message: "Erro ao buscar threads do board",
-                    error: error.message,
-                    stack: error.stack,
-                });
-            }
+        const boardId = req.params.boardId;
+        const pageNumber = Number(req.query.page) || 1;
+        const sizeNumber = Number(req.query.size) || 20;
+    
+        try {
+            const threads = await Thread.findAll({
+                where: { boardId: boardId },
+                limit: sizeNumber,
+                offset: (pageNumber - 1) * sizeNumber,
+            });
+    
+            const totalThreads = await Thread.count({
+                where: { boardId: boardId },
+            });
+    
+            const totalPages = Math.ceil(totalThreads / sizeNumber);
+
+            const baseUrl = `${process.env.CLIENT_URL}/${boardId}/threads`;
+    
+            const nextPage =
+                pageNumber < totalPages
+                    ? `${baseUrl}?page=${pageNumber + 1}&size=${sizeNumber}`
+                    : null;
+            const previousPage =
+                pageNumber > 1
+                    ? `${baseUrl}?page=${pageNumber - 1}&size=${sizeNumber}`
+                    : null;
+    
+            res.json({
+                data: threads,
+                currentPage: pageNumber,
+                totalPages: totalPages,
+                next: nextPage,
+                previous: previousPage,
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: "Erro ao buscar threads do board",
+                error: error.message,
+                stack: error.stack,
+            });
+        }
     },
 
     async getRecentThreads(_, res) {
